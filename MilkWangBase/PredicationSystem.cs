@@ -22,11 +22,12 @@ namespace MilkWangBase
         public Dictionary<UnitType, int> buildCompletedUnitTypes = new();
         public Dictionary<UnitType, int> buildNotCompletedUnitTypes = new();
         public Dictionary<UnitType, int> predicatedUnitTypes = new();
-        public Dictionary<UnitType, bool> unitCanBuild = new();
 
         public List<Unit> buildNotCompletedUnits = new();
 
         public HashSet<UnitType> canBuildUnits = new();
+        public HashSet<UpgradeType> canUpgrades = new();
+        public HashSet<UpgradeType> predicatedUpgrades = new();
 
         public float foodPrediction20s;
 
@@ -82,7 +83,7 @@ namespace MilkWangBase
                             foodPrediction20s -= 3;
                             break;
                         case UnitType.ZERG_SPAWNINGPOOL:
-                            foodPrediction20s -= 6;
+                            foodPrediction20s -= 5;
                             break;
                     }
                 }
@@ -92,11 +93,9 @@ namespace MilkWangBase
             foreach (var item in DData.UnitRequirements)
             {
                 bool canBuild = true;
-                //var requirement = item;
                 if (GetBuildCompletedCount(item.Builder) == 0)
                     continue;
                 if (item.Requirements != null)
-                {
                     foreach (var req1 in item.Requirements)
                     {
                         if (GetBuildCompletedCount(req1) == 0)
@@ -104,7 +103,6 @@ namespace MilkWangBase
                             canBuild = false;
                         }
                     }
-                }
                 if (item.needLab)
                 {
                     switch (item.Builder)
@@ -118,6 +116,24 @@ namespace MilkWangBase
                 if (canBuild)
                 {
                     canBuildUnits.Add(item.UnitType);
+                }
+            }
+            foreach (var item in DData.UpgradeRequirements)
+            {
+                bool canResearching = true;
+                if (GetBuildCompletedCount(item.Researcher) == 0)
+                    continue;
+                if (item.Requirements != null)
+                    foreach (var req1 in item.Requirements)
+                    {
+                        if (GetBuildCompletedCount(req1) == 0)
+                        {
+                            canResearching = false;
+                        }
+                    }
+                if (canResearching)
+                {
+                    canUpgrades.Add(item.Upgrade);
                 }
             }
 
@@ -138,10 +154,12 @@ namespace MilkWangBase
                             if (timeRemain < 20 * 22.4f)
                                 foodPrediction20s -= buildUnit.FoodRequired;
                             timeRemain += buildUnit.BuildTime;
-                            if (timeRemain < 20 * 22.4f && mineralPredict > 0)
+                            if (timeRemain < 20 * 22.4f && (mineralPredict > 0 || buildUnit.MineralCost == 0) &&
+                                (vespinePredict > 0 || buildUnit.VespeneCost == 0))
                             {
                                 foodPrediction20s -= buildUnit.FoodRequired;
                                 mineralPredict -= buildUnit.MineralCost;
+                                vespinePredict -= buildUnit.VespeneCost;
                             }
                         }
                         if (buildUnit.FoodProvided > 0)
@@ -149,12 +167,19 @@ namespace MilkWangBase
                             foodPrediction20s += buildUnit.FoodProvided;
                         }
                     }
+                    else if (analysisSystem.abilToUpgrade.TryGetValue((Abilities)order.AbilityId, out var upgrade))
+                    {
+                        var up1 = (UpgradeType)upgrade.UpgradeId;
+                        predicatedUpgrades.Add(up1);
+                        canUpgrades.Remove(up1);
+                    }
                     else if ((Abilities)order.AbilityId == Abilities.MORPH_ORBITALCOMMAND)
                     {
                         predicatedUnitTypes.Increment(UnitType.TERRAN_ORBITALCOMMAND);
                     }
                 }
             }
+            canUpgrades.ExceptWith(analysisSystem.hasUpgrade);
         }
 
         public int GetBuildCompletedCount(UnitType unitType)

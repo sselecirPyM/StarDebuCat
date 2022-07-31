@@ -118,18 +118,18 @@ namespace MilkWangBase
                     if (visEnemy)
                     {
                         enemy = enemyNearby6.Nearest(unitPosition);
-                        bool forward = enemyNearby6.Count * 1.5f < friendNearbys.Count - 1;
+                        bool forward = enemyNearby6.Count * 2.0f < friendNearbys.Count - 1;
 
                         float distance = forward ? 0.2f : -0.2f;
                         var targetPosition = unitPosition.Closer(enemy.position, unitTypeData.MovementSpeed * distance, 2.5f);
-                        commandSystem.EnqueueAbility(unit, Abilities.MOVE, targetPosition);
+                        commandSystem.OptimiseMove(unit, targetPosition);
                     }
                     else if (visEnemyAll)
                     {
                         enemy = enemyNearbyAll.Nearest(unitPosition);
 
                         var targetPosition = unitPosition.Closer(enemy.position, 0.1f * unitTypeData.MovementSpeed, outOfSightEnemyArmy1.Contains(enemy) ? 0.1f : 4);
-                        commandSystem.EnqueueAbility(unit, Abilities.MOVE, targetPosition);
+                        commandSystem.OptimiseMove(unit, targetPosition);
                     }
                     esc.Add(unit);
                 }
@@ -154,7 +154,7 @@ namespace MilkWangBase
                     {
                         float enemyrange = analysisSystem.fireRanges[(int)enemy.type];
                         var targetPosition = unitPosition.Closer(enemy.position, -0.5f, outOfSightEnemyArmy1.Contains(enemy) ? 0.1f : enemyrange + 1.1f);
-                        commandSystem.EnqueueAbility(unit, Abilities.MOVE, targetPosition);
+                        commandSystem.OptimiseMove(unit, targetPosition);
                         esc.Add(unit);
                     }
                     else if (invisibleArmyCount + 2 > friendNearbys.Count)

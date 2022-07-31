@@ -34,6 +34,27 @@ namespace MilkWangBase
 
         public void EnqueueChat(string message, bool broadcast) => actionList.EnqueueChat(message, broadcast);
 
+        public void OptimiseMove(Unit unit, Vector2 target)
+        {
+            if (unit.orders.Count > 0 && (Abilities)unit.orders[0].AbilityId == Abilities.MOVE)
+            {
+                var pos = unit.orders[0].TargetWorldSpacePos;
+                var pos1 = new Vector2(pos.X, pos.Y);
+                if (Vector2.DistanceSquared(target, pos1) < 1e-2f)
+                {
+                    return;
+                }
+            }
+            else if (unit.orders.Count == 0)
+            {
+                if (Vector2.DistanceSquared(target, unit.position) < 1e-2f)
+                {
+                    return;
+                }
+            }
+            EnqueueAbility(unit, Abilities.MOVE, target);
+        }
+
         public void EnqueueAbility(Unit unit, Abilities abilities) => actionList.EnqueueAbility(new[] { unit }, abilities);
         public void EnqueueAbility(Unit unit, Abilities abilities, Vector2 target) => actionList.EnqueueAbility(new[] { unit }, abilities, target);
         public void EnqueueAbility(Unit unit, Abilities abilities, Unit target) => actionList.EnqueueAbility(new[] { unit }, abilities, target.Tag);

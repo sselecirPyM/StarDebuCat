@@ -23,7 +23,7 @@ namespace MilkWang1
         [System]
         public MarkerSystem markerSystem;
         [System]
-        public ProtossBot1 terranBot1;
+        public ProtossBot1 protossBot1;
         [System]
         public BattleSystem battleSystem;
         [System]

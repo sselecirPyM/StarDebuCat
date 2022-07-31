@@ -19,6 +19,7 @@ namespace MilkWangP1
         MarkerSystem markerSystem;
         BattleSystem battleSystem;
         BuildSystem buildSystem;
+        PredicationSystem predicationSystem;
 
         Random random = new Random();
 
@@ -67,24 +68,47 @@ namespace MilkWangP1
 
             if (!enemyFindInit && buildSystem.resourcePoints != null)
                 EnemyFindInit();
-            buildSystem.requireUnitCount[UnitType.PROTOSS_GATEWAY] = 3;
             buildSystem.requireUnitCount[UnitType.PROTOSS_CYBERNETICSCORE] = 1;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_ZEALOT] = 0;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_ADEPT] = 20;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_STALKER] = 20;
+            buildSystem.requireUnitCount[UnitType.PROTOSS_ZEALOT] = 6;
+            buildSystem.requireUnitCount[UnitType.PROTOSS_SENTRY] = 0;
+            buildSystem.requireUnitCount[UnitType.PROTOSS_ADEPT] = 2;
+            buildSystem.requireUnitCount[UnitType.PROTOSS_STALKER] = 0;
             buildSystem.requireUnitCount[UnitType.PROTOSS_CYBERNETICSCORE] = 1;
             buildSystem.requireUnitCount[UnitType.PROTOSS_TWILIGHTCOUNCIL] = 1;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_STARGATE] = 1;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_FLEETBEACON] = 1;
-            //buildSystem.requireUnitCount[UnitType.PROTOSS_VOIDRAY] = 10;
-            //buildSystem.requireUnitCount[UnitType.PROTOSS_ROBOTICSFACILITY] = 1;
+            buildSystem.requireUnitCount[UnitType.PROTOSS_DARKSHRINE] = 1;
+            buildSystem.requireUnitCount[UnitType.PROTOSS_DARKTEMPLAR] = 10;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_TEMPLARARCHIVE] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_HIGHTEMPLAR] = 2;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_STARGATE] = 2;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_FLEETBEACON] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_VOIDRAY] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_ORACLE] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_PHOENIX] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_TEMPEST] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_CARRIER] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_ROBOTICSFACILITY] = 2;
             //buildSystem.requireUnitCount[UnitType.PROTOSS_ROBOTICSBAY] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_OBSERVER] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_IMMORTAL] = 2;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_COLOSSUS] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_WARPPRISM] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_DISRUPTOR] = 1;
             buildSystem.requireUnitCount[UnitType.PROTOSS_PROBE] = 26;
 
             if (buildSystem.workers.Count > 15)
                 buildSystem.requireUnitCount[UnitType.PROTOSS_ASSIMILATOR] = 1;
             if (buildSystem.workers.Count > 20)
                 buildSystem.requireUnitCount[UnitType.PROTOSS_ASSIMILATOR] = 2;
+
+            buildSystem.requireUnitCount[UnitType.PROTOSS_GATEWAY] = 1;
+            if (predicationSystem.GetPredictTotal(UnitType.PROTOSS_CYBERNETICSCORE) > 0)
+                buildSystem.requireUnitCount[UnitType.PROTOSS_GATEWAY] = 3;
+            if (predicationSystem.GetPredictTotal(UnitType.PROTOSS_WARPGATE) > 0)
+            {
+                buildSystem.requireUnitCount[UnitType.PROTOSS_GATEWAY] = 4 - predicationSystem.GetPredictTotal(UnitType.PROTOSS_WARPGATE);
+                buildSystem.requireUnitCount[UnitType.PROTOSS_ZEALOT] = 10;
+
+            }
 
             var unitDictionary = analysisSystem.unitDictionary;
 

@@ -67,16 +67,37 @@ namespace MilkWang1
 
             if (!enemyFindInit && buildSystem.resourcePoints != null)
                 EnemyFindInit();
-            buildSystem.requireUnitCount[UnitType.TERRAN_BARRACKS] = 7;
-            buildSystem.requireUnitCount[UnitType.TERRAN_MARINE] = 100;
-            buildSystem.requireUnitCount[UnitType.TERRAN_MARAUDER] = 10;
+            buildSystem.requireUnitCount[UnitType.TERRAN_BARRACKS] = 3;
+            buildSystem.requireUnitCount[UnitType.TERRAN_BARRACKSTECHLAB] = 3;
+            buildSystem.requireUnitCount[UnitType.TERRAN_MARINE] = 20;
+            buildSystem.requireUnitCount[UnitType.TERRAN_MARAUDER] = 4;
             buildSystem.requireUnitCount[UnitType.TERRAN_SCV] = 24;
             buildSystem.requireUnitCount[UnitType.TERRAN_MULE] = 10;
             buildSystem.requireUnitCount[UnitType.TERRAN_ORBITALCOMMAND] = 10;
-            //buildSystem.requireUnitCount[UnitType.TERRAN_BARRACKSTECHLAB] = 2;
+            buildSystem.requireUnitCount[UnitType.TERRAN_GHOSTACADEMY] = 1;
+            //buildSystem.requireUnitCount[UnitType.TERRAN_GHOST] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_FACTORY] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_FACTORYTECHLAB] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_STARPORT] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_STARPORTTECHLAB] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_ENGINEERINGBAY] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_ARMORY] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_FUSIONCORE] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_REAPER] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_HELLION] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_SIEGETANK] = 1;
+            buildSystem.requireUnitCount[UnitType.TERRAN_WIDOWMINE] = 1;
+            //buildSystem.requireUnitCount[UnitType.TERRAN_CYCLONE] = 1;
+            //buildSystem.requireUnitCount[UnitType.TERRAN_THOR] = 1;
+            //buildSystem.requireUnitCount[UnitType.TERRAN_VIKINGFIGHTER] = 2;
+            //buildSystem.requireUnitCount[UnitType.TERRAN_MEDIVAC] = 2;
+            //buildSystem.requireUnitCount[UnitType.TERRAN_LIBERATOR] = 2;
+            //buildSystem.requireUnitCount[UnitType.TERRAN_BANSHEE] = 1;
+            //buildSystem.requireUnitCount[UnitType.TERRAN_RAVEN] = 1;
+            //buildSystem.requireUnitCount[UnitType.TERRAN_BATTLECRUISER] = 1;
 
-            //if (buildSystem.workers.Count > 24)
-            //    buildSystem.requireUnitCount[UnitType.TERRAN_REFINERY] = 1;
+            if (buildSystem.workers.Count > 16)
+                buildSystem.requireUnitCount[UnitType.TERRAN_REFINERY] = 2;
 
             var unitDictionary = analysisSystem.unitDictionary;
 
@@ -107,7 +128,7 @@ namespace MilkWang1
                 markerSystem.AddMark(deadUnit.position, "Dead", 30);
             }
 
-            int attackCount = 20;
+            int attackCount = 30;
             foreach (var army in armies)
             {
                 if (armies.Count > attackCount)

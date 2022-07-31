@@ -34,11 +34,17 @@ namespace MilkWangBase
         [XFind("CollectUnits", Alliance.Self, "CommandCenter")]
         public List<Unit> commandCenters;
 
-        [XFind("CollectUnits", Alliance.Self, UnitType.TERRAN_BARRACKS)]
-        public List<Unit> barracks;
+        [XFind("CollectUnits", Alliance.Self, "Building")]
+        public List<Unit> buildings;
 
-        [XFind("CollectUnits", Alliance.Self, UnitType.TERRAN_BARRACKSFLYING)]
+        [XFind("CollectUnits", Alliance.Self, "Building", UnitType.TERRAN_BARRACKSFLYING)]
         public List<Unit> barracksFlying;
+
+        [XFind("CollectUnits", Alliance.Self, "Building", UnitType.TERRAN_FACTORYFLYING)]
+        public List<Unit> factoryFlying;
+
+        [XFind("CollectUnits", Alliance.Self, "Building", UnitType.TERRAN_STARPORTFLYING)]
+        public List<Unit> starPortFlying;
 
         [XFind("CollectUnits", Alliance.Self, "Factory")]
         public List<Unit> factories;
@@ -52,7 +58,7 @@ namespace MilkWangBase
         [XFind("CollectUnits", Alliance.Neutral, "VespeneGeyser")]
         public List<Unit> geysers;
 
-        [XFind("CollectUnits", Alliance.Self, "Refinery")]
+        [XFind("CollectUnits", Alliance.Self, "Building", "Refinery")]
         public List<Unit> refinery;
 
         [XFind("QuadTree", Alliance.Neutral, "MineralField")]
@@ -69,6 +75,9 @@ namespace MilkWangBase
         public List<Vector2> debugPositions;
 
         public Dictionary<UnitType, int> requireUnitCount = new();
+        public HashSet<UpgradeType> requireUpgrade = new();
+
+        public bool randomlyUpgrade = true;
 
         int mineralRemain;
         int vespeneRemain;
@@ -134,8 +143,6 @@ namespace MilkWangBase
                 var race = unitTypeData.Race;
                 UnitType workerType = GetWorkerType((Race)race);
 
-
-
                 if (commandCenter.orders.Count == 0)
                 {
                     if (commandCenter.type == UnitType.TERRAN_ORBITALCOMMAND && commandCenter.energy >= 50 && nearByMineral.Count > 0 && NeedBuildUnit(UnitType.TERRAN_MULE))
@@ -186,7 +193,7 @@ namespace MilkWangBase
                 if (worker.orders.Count > 0 && worker.orders[0].TargetUnitTag != 0)
                 {
                     if (analysisSystem.unitDictionary.TryGetValue(worker.orders[0].TargetUnitTag, out var target) &&
-                        DData.Refinery.Contains(target.type) && target.assignedHarvesters > 3)
+                        DData.Refinery.Contains(target.type) && (target.assignedHarvesters > 3 || target.buildProgress != 1))
                     {
                         workersAvailable.Remove(worker);
                         commandSystem.EnqueueAbility(worker, Abilities.STOP);
@@ -200,17 +207,33 @@ namespace MilkWangBase
                 }
             }
 
-            foreach (var barracks1 in barracksFlying)
+            foreach (var factory in barracksFlying)
+                if (factory.orders.Count == 0)
+                    commandSystem.EnqueueAbility(factory, Abilities.LAND_BARRACKS, factory.position + new Vector2(random.NextSingle() * 10 - 5, random.NextSingle() * 10 - 5));
+            foreach (var factory in factoryFlying)
+                if (factory.orders.Count == 0)
+                    commandSystem.EnqueueAbility(factory, Abilities.LAND_FACTORY, factory.position + new Vector2(random.NextSingle() * 10 - 5, random.NextSingle() * 10 - 5));
+            foreach (var factory in starPortFlying)
+                if (factory.orders.Count == 0)
+                    commandSystem.EnqueueAbility(factory, Abilities.LAND_STARPORT, factory.position + new Vector2(random.NextSingle() * 10 - 5, random.NextSingle() * 10 - 5));
+            foreach (var barracks1 in factories)
             {
-                if (barracks1.orders.Count == 0)
+                UnitType labType;
+                switch (barracks1.type)
                 {
-                    commandSystem.EnqueueAbility(barracks1, Abilities.LAND_BARRACKS, barracks1.position + new Vector2(random.NextSingle() * 10 - 5, random.NextSingle() * 10 - 5));
+                    case UnitType.TERRAN_BARRACKS:
+                        labType = UnitType.TERRAN_BARRACKSTECHLAB;
+                        break;
+                    case UnitType.TERRAN_FACTORY:
+                        labType = UnitType.TERRAN_FACTORYTECHLAB;
+                        break;
+                    case UnitType.TERRAN_STARPORT:
+                        labType = UnitType.TERRAN_STARPORTTECHLAB;
+                        break;
+                    default:
+                        continue;
                 }
-            }
-            foreach (var barracks1 in barracks)
-            {
-                var labType = UnitType.TERRAN_BARRACKSTECHLAB;
-                if (barracks1.addOnTag == 0 && barracks1.orders.Count == 0 && barracks1.buildProgress == 1 && NeedBuildUnit(labType))
+                if (barracks1.addOnTag == 0 && barracks1.orders.Count == 0 && barracks1.buildProgress == 1 && ReadyToBuild(labType))
                 {
                     Build(barracks1, labType, barracks1.position, 5);
                 }
@@ -221,37 +244,43 @@ namespace MilkWangBase
                 {
                     commandSystem.EnqueueAbility(factory, Abilities.SMART, battleSystem.protectPosition);
                 }
+                if (factory.orders.Count != 0 || factory.buildProgress != 1)
+                    continue;
 
                 UnitType trainUnitType = UnitType.INVALID;
-                if (factory.type == UnitType.TERRAN_BARRACKS)
+                if (analysisSystem.Spawners.TryGetValue(factory.type, out var unitTypes))
                 {
-                    trainUnitType = UnitType.TERRAN_MARINE;
-                    if (factory.addOnTag != 0 && ReadyToBuild(UnitType.TERRAN_MARAUDER))
-                        trainUnitType = UnitType.TERRAN_MARAUDER;
-                }
-                else if (factory.type == UnitType.PROTOSS_GATEWAY)
-                {
-                    trainUnitType = UnitType.PROTOSS_ZEALOT;
-                    if (ReadyToBuild(UnitType.PROTOSS_SENTRY))
-                        trainUnitType = UnitType.PROTOSS_SENTRY;
-                    if (ReadyToBuild(UnitType.PROTOSS_ADEPT))
-                        trainUnitType = UnitType.PROTOSS_ADEPT;
-                    if (ReadyToBuild(UnitType.PROTOSS_STALKER))
-                        trainUnitType = UnitType.PROTOSS_STALKER;
-                }
-                else if (factory.type == UnitType.PROTOSS_STARGATE)
-                {
-                    trainUnitType = UnitType.PROTOSS_PHOENIX;
-                    if (ReadyToBuild(UnitType.PROTOSS_VOIDRAY))
-                        trainUnitType = UnitType.PROTOSS_VOIDRAY;
-                    if (ReadyToBuild(UnitType.PROTOSS_CARRIER))
-                        trainUnitType = UnitType.PROTOSS_CARRIER;
+                    var _trainType = unitTypes.GetRandom(random);
+                    if (ReadyToBuild(_trainType))
+                    {
+                        if (analysisSystem.unitTypeDatas[(int)_trainType].RequireAttached && factory.addOnTag == 0)
+                        {
+                            continue;
+                        }
+                        trainUnitType = _trainType;
+                    }
                 }
 
-                if (factory.orders.Count == 0 && factory.buildProgress == 1)
+                if (NeedBuildUnit(trainUnitType))
                 {
-                    if (NeedBuildUnit(trainUnitType))
+                    if (factory.type == UnitType.PROTOSS_WARPGATE)
+                        Warp(factory, trainUnitType, factory.position, 10);
+                    else
                         Train(factory, trainUnitType);
+
+                }
+            }
+            foreach (var myUnit in myUnits)
+            {
+                if (myUnit.orders.Count != 0 || myUnit.buildProgress != 1)
+                    continue;
+                if (analysisSystem.UpgradesResearcher.TryGetValue(myUnit.type, out var upgrades))
+                {
+                    var upgrade = upgrades.GetRandom(random);
+                    if (ReadyToUpgrade(upgrade))
+                    {
+                        Upgrade(myUnit, upgrade);
+                    }
                 }
             }
 
@@ -266,13 +295,50 @@ namespace MilkWangBase
             }
         }
 
+        bool Warp(Unit unit, UnitType unitType, Vector2 position, float randomSize)
+        {
+            var unitTypeData = analysisSystem.unitTypeDatas[(int)unitType];
+            int mineralCost = (int)unitTypeData.MineralCost;
+            int vespeneCost = (int)unitTypeData.VespeneCost;
+            int foodCost = (int)unitTypeData.FoodRequired;
+            if (mineralRemain < mineralCost && mineralCost != 0 || vespeneRemain < vespeneCost && vespeneCost != 0 || foodRemain < foodCost && foodCost != 0)
+                return false;
+
+            position += new Vector2(random.NextFloat(-randomSize, randomSize), random.NextFloat(-randomSize, randomSize));
+            for (int i = 0; i < 7; i++)
+                if (placementImage.Query(position) == 0)
+                {
+                    position += new Vector2(random.NextFloat(-randomSize, randomSize), random.NextFloat(-randomSize, randomSize));
+                }
+                else
+                {
+                    break;
+                }
+            predicationSystem.predicatedUnitTypes.Increment(unitType);
+            Abilities ability = unitType switch
+            {
+                UnitType.PROTOSS_ZEALOT => Abilities.TRAINWARP_ZEALOT,
+                UnitType.PROTOSS_STALKER => Abilities.TRAINWARP_STALKER,
+                UnitType.PROTOSS_SENTRY => Abilities.TRAINWARP_SENTRY,
+                UnitType.PROTOSS_ADEPT => Abilities.TRAINWARP_ADEPT,
+                UnitType.PROTOSS_HIGHTEMPLAR => Abilities.TRAINWARP_HIGHTEMPLAR,
+                UnitType.PROTOSS_DARKTEMPLAR => Abilities.TRAINWARP_DARKTEMPLAR,
+                _ => Abilities.INVALID,
+            };
+            commandSystem.EnqueueAbility(unit, ability, position);
+            mineralRemain -= mineralCost;
+            vespeneRemain -= vespeneCost;
+            foodRemain -= foodCost;
+            return true;
+        }
+
         bool Build(Unit unit, UnitType unitType, Vector2 position, float randomSize)
         {
             var unitTypeData = analysisSystem.unitTypeDatas[(int)unitType];
             int mineralCost = (int)unitTypeData.MineralCost;
             int vespeneCost = (int)unitTypeData.VespeneCost;
             int foodCost = (int)unitTypeData.FoodRequired;
-            if (mineralRemain < mineralCost || vespeneRemain < vespeneCost || foodRemain < foodCost && foodCost != 0)
+            if (mineralRemain < mineralCost && mineralCost != 0 || vespeneRemain < vespeneCost && vespeneCost != 0 || foodRemain < foodCost && foodCost != 0)
                 return false;
 
             position += new Vector2(random.NextFloat(-randomSize, randomSize), random.NextFloat(-randomSize, randomSize));
@@ -290,6 +356,21 @@ namespace MilkWangBase
             mineralRemain -= mineralCost;
             vespeneRemain -= vespeneCost;
             foodRemain -= foodCost;
+            return true;
+        }
+
+        bool Upgrade(Unit unit, UpgradeType upgrade)
+        {
+            var upgradeData = analysisSystem.upgradeDatas[(int)upgrade];
+            int mineralCost = (int)upgradeData.MineralCost;
+            int vespeneCost = (int)upgradeData.VespeneCost;
+            if (mineralRemain < mineralCost && mineralCost != 0 || vespeneRemain < vespeneCost && vespeneCost != 0)
+                return false;
+            if (!predicationSystem.canUpgrades.Contains(upgrade))
+                return false;
+            mineralRemain -= mineralCost;
+            vespeneRemain -= vespeneCost;
+            commandSystem.EnqueueAbility(unit, (Abilities)upgradeData.AbilityId);
             return true;
         }
 
@@ -324,6 +405,15 @@ namespace MilkWangBase
             return true;
         }
 
+        bool ReadyToUpgrade(UpgradeType upgrade)
+        {
+            if (!predicationSystem.canUpgrades.Contains(upgrade))
+                return false;
+            if (!requireUpgrade.Contains(upgrade) && !randomlyUpgrade)
+                return false;
+            return true;
+        }
+
         bool Train(Unit unit, UnitType unitType)
         {
             var unitTypeData = analysisSystem.unitTypeDatas[(int)unitType];
@@ -339,6 +429,62 @@ namespace MilkWangBase
             foodRemain -= foodCost;
             return true;
         }
+
+        UnitType GetSupplyType(Race race)
+        {
+            return race switch
+            {
+                Race.Terran => UnitType.TERRAN_SUPPLYDEPOT,
+                Race.Protoss => UnitType.PROTOSS_PYLON,
+                Race.Zerg => UnitType.ZERG_OVERLORD,
+                _ => UnitType.TERRAN_SUPPLYDEPOT,
+            };
+        }
+
+        UnitType GetWorkerType(Race race)
+        {
+            return race switch
+            {
+                Race.Terran => UnitType.TERRAN_SCV,
+                Race.Protoss => UnitType.PROTOSS_PROBE,
+                Race.Zerg => UnitType.ZERG_DRONE,
+                _ => UnitType.TERRAN_SCV,
+            };
+        }
+
+        UnitType GetRefineryType(UnitType unitType)
+        {
+            return unitType switch
+            {
+                UnitType.TERRAN_SCV => UnitType.TERRAN_REFINERY,
+                UnitType.PROTOSS_PROBE => UnitType.PROTOSS_ASSIMILATOR,
+                UnitType.ZERG_DRONE => UnitType.ZERG_EXTRACTOR,
+                _ => UnitType.ZERG_EXTRACTOR,
+            };
+        }
+
+        static List<UnitType> BuildBuildings = new()
+        {
+            UnitType.TERRAN_BARRACKS,
+            UnitType.TERRAN_ENGINEERINGBAY,
+            UnitType.TERRAN_GHOSTACADEMY,
+            UnitType.TERRAN_FACTORY,
+            UnitType.TERRAN_ARMORY,
+            UnitType.TERRAN_STARPORT,
+            UnitType.TERRAN_FUSIONCORE,
+            UnitType.PROTOSS_GATEWAY,
+            UnitType.PROTOSS_CYBERNETICSCORE,
+            UnitType.PROTOSS_FORGE,
+            UnitType.PROTOSS_TWILIGHTCOUNCIL,
+            UnitType.PROTOSS_TEMPLARARCHIVE,
+            UnitType.PROTOSS_DARKSHRINE,
+            UnitType.PROTOSS_ROBOTICSBAY,
+            UnitType.PROTOSS_ROBOTICSFACILITY,
+            UnitType.PROTOSS_STARGATE,
+            UnitType.PROTOSS_FLEETBEACON,
+            UnitType.ZERG_SPAWNINGPOOL,
+            UnitType.ZERG_EVOLUTIONCHAMBER,
+        };
 
         void PostInitialize()
         {
@@ -430,61 +576,5 @@ namespace MilkWangBase
                 }
             return true;
         }
-
-        UnitType GetSupplyType(Race race)
-        {
-            return race switch
-            {
-                Race.Terran => UnitType.TERRAN_SUPPLYDEPOT,
-                Race.Protoss => UnitType.PROTOSS_PYLON,
-                Race.Zerg => UnitType.ZERG_OVERLORD,
-                _ => UnitType.TERRAN_SUPPLYDEPOT,
-            };
-        }
-
-        UnitType GetWorkerType(Race race)
-        {
-            return race switch
-            {
-                Race.Terran => UnitType.TERRAN_SCV,
-                Race.Protoss => UnitType.PROTOSS_PROBE,
-                Race.Zerg => UnitType.ZERG_DRONE,
-                _ => UnitType.TERRAN_SCV,
-            };
-        }
-
-        UnitType GetRefineryType(UnitType unitType)
-        {
-            return unitType switch
-            {
-                UnitType.TERRAN_SCV => UnitType.TERRAN_REFINERY,
-                UnitType.PROTOSS_PROBE => UnitType.PROTOSS_ASSIMILATOR,
-                UnitType.ZERG_DRONE => UnitType.ZERG_EXTRACTOR,
-                _ => UnitType.ZERG_EXTRACTOR,
-            };
-        }
-
-        static List<UnitType> BuildBuildings = new()
-        {
-            UnitType.TERRAN_BARRACKS,
-            UnitType.TERRAN_ENGINEERINGBAY,
-            UnitType.TERRAN_GHOSTACADEMY,
-            UnitType.TERRAN_FACTORY,
-            UnitType.TERRAN_ARMORY,
-            UnitType.TERRAN_STARPORT,
-            UnitType.TERRAN_FUSIONCORE,
-            UnitType.PROTOSS_GATEWAY,
-            UnitType.PROTOSS_CYBERNETICSCORE,
-            UnitType.PROTOSS_FORGE,
-            UnitType.PROTOSS_TWILIGHTCOUNCIL,
-            UnitType.PROTOSS_TEMPLARARCHIVE,
-            UnitType.PROTOSS_DARKSHRINE,
-            UnitType.PROTOSS_ROBOTICSBAY,
-            UnitType.PROTOSS_ROBOTICSFACILITY,
-            UnitType.PROTOSS_STARGATE,
-            UnitType.PROTOSS_FLEETBEACON,
-            UnitType.ZERG_SPAWNINGPOOL,
-            UnitType.ZERG_EVOLUTIONCHAMBER,
-        };
     }
 }

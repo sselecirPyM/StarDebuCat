@@ -32,7 +32,14 @@ namespace MilkWangBase
         public List<SC2APIProtocol.UnitTypeData> unitTypeDatas;
         public List<SC2APIProtocol.AbilityData> abilitiesData;
         public List<SC2APIProtocol.UpgradeData> upgradeDatas;
+        public List<SC2APIProtocol.BuffData> buffDatas;
         public Dictionary<Abilities, SC2APIProtocol.UnitTypeData> abilToUnitTypeData;
+        public Dictionary<Abilities, SC2APIProtocol.UpgradeData> abilToUpgrade;
+
+        public Dictionary<UnitType, List<UnitType>> Spawners = new();
+        public Dictionary<UnitType, List<UpgradeType>> UpgradesResearcher = new();
+
+        public HashSet<UpgradeType> hasUpgrade = new();
 
         public AutoCurve CollectionRateMinerals = new();
         public AutoCurve CollectionRateVespene = new();
@@ -143,6 +150,50 @@ namespace MilkWangBase
             }
             upgradeDatas = new();
             upgradeDatas.AddRange(inputSystem.gameData.Upgrades);
+            abilToUpgrade = new();
+            foreach (var upgrade in upgradeDatas)
+            {
+                if (upgrade.AbilityId != 0)
+                    abilToUpgrade[(Abilities)upgrade.AbilityId] = upgrade;
+                if (((Abilities)upgrade.AbilityId) == Abilities.RESEARCH_CONCUSSIVESHELLS)
+                {
+
+                }
+            }
+            buffDatas = new();
+            buffDatas.AddRange(inputSystem.gameData.Buffs);
+
+
+            Spawners = new();
+            foreach (var requirement in DData.UnitRequirements)
+            {
+                var builder = requirement.Builder;
+                var unitType = requirement.UnitType;
+                if (DData.Building.Contains(unitType))
+                {
+                    continue;
+                }
+                if (!Spawners.TryGetValue(builder, out var buildUnits1))
+                {
+                    buildUnits1 = new();
+                    Spawners[builder] = buildUnits1;
+                }
+                if (!buildUnits1.Contains(unitType))
+                    buildUnits1.Add(unitType);
+            }
+            UpgradesResearcher = new();
+            foreach (var requirement in DData.UpgradeRequirements)
+            {
+                var researcher = requirement.Researcher;
+                var upgrade = requirement.Upgrade;
+                if (!UpgradesResearcher.TryGetValue(researcher, out var upgradeRequirements))
+                {
+                    upgradeRequirements = new();
+                    UpgradesResearcher[researcher] = upgradeRequirements;
+                }
+                if (!upgradeRequirements.Contains(upgrade))
+                    upgradeRequirements.Add(upgrade);
+            }
 
             var startRaw = inputSystem.gameInfo.StartRaw;
             var size = startRaw.PathingGrid.Size;
@@ -217,6 +268,11 @@ namespace MilkWangBase
             WarpGateCount = (int)playerCommon.WarpGateCount;
             IdleWorkerCount = (int)playerCommon.IdleWorkerCount;
 
+            hasUpgrade.Clear();
+            foreach(var up in inputSystem.observation.Observation.RawData.Player.UpgradeIds)
+            {
+                hasUpgrade.Add((UpgradeType)up);
+            }
         }
 
         HashSet<ulong> previousUnit = new();
@@ -431,7 +487,8 @@ namespace MilkWangBase
             UnitType.TERRAN_FACTORY,
             UnitType.TERRAN_STARPORT,
             UnitType.PROTOSS_GATEWAY,
-            UnitType.PROTOSS_ROBOTICSBAY,
+            UnitType.PROTOSS_WARPGATE,
+            UnitType.PROTOSS_ROBOTICSFACILITY,
             UnitType.PROTOSS_STARGATE,
             UnitType.ZERG_LARVA,
         };
