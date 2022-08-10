@@ -68,15 +68,15 @@ namespace MilkWangP1
 
             if (!enemyFindInit && buildSystem.resourcePoints != null)
                 EnemyFindInit();
-            buildSystem.requireUnitCount[UnitType.PROTOSS_CYBERNETICSCORE] = 1;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_ZEALOT] = 6;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_SENTRY] = 0;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_ADEPT] = 2;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_STALKER] = 0;
+
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_ZEALOT] = 0;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_ADEPT] = 6;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_STALKER] = 6;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_SENTRY] = 0;
             buildSystem.requireUnitCount[UnitType.PROTOSS_CYBERNETICSCORE] = 1;
             buildSystem.requireUnitCount[UnitType.PROTOSS_TWILIGHTCOUNCIL] = 1;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_DARKSHRINE] = 1;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_DARKTEMPLAR] = 10;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_DARKSHRINE] = 1;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_DARKTEMPLAR] = 10;
             //buildSystem.requireUnitCount[UnitType.PROTOSS_TEMPLARARCHIVE] = 1;
             //buildSystem.requireUnitCount[UnitType.PROTOSS_HIGHTEMPLAR] = 2;
             //buildSystem.requireUnitCount[UnitType.PROTOSS_STARGATE] = 2;
@@ -89,26 +89,41 @@ namespace MilkWangP1
             //buildSystem.requireUnitCount[UnitType.PROTOSS_ROBOTICSFACILITY] = 2;
             //buildSystem.requireUnitCount[UnitType.PROTOSS_ROBOTICSBAY] = 1;
             //buildSystem.requireUnitCount[UnitType.PROTOSS_OBSERVER] = 1;
-            //buildSystem.requireUnitCount[UnitType.PROTOSS_IMMORTAL] = 2;
+            //buildSystem.requireUnitCount[UnitType.PROTOSS_IMMORTAL] = 3;
             //buildSystem.requireUnitCount[UnitType.PROTOSS_COLOSSUS] = 1;
             //buildSystem.requireUnitCount[UnitType.PROTOSS_WARPPRISM] = 1;
             //buildSystem.requireUnitCount[UnitType.PROTOSS_DISRUPTOR] = 1;
-            buildSystem.requireUnitCount[UnitType.PROTOSS_PROBE] = 26;
 
+            int nexusCount = predicationSystem.GetPredictTotal(UnitType.PROTOSS_NEXUS);
             if (buildSystem.workers.Count > 15)
                 buildSystem.requireUnitCount[UnitType.PROTOSS_ASSIMILATOR] = 1;
             if (buildSystem.workers.Count > 20)
-                buildSystem.requireUnitCount[UnitType.PROTOSS_ASSIMILATOR] = 2;
+                buildSystem.requireUnitCount[UnitType.PROTOSS_ASSIMILATOR] = nexusCount * 2;
 
             buildSystem.requireUnitCount[UnitType.PROTOSS_GATEWAY] = 1;
+            buildSystem.requireUnitCount[UnitType.PROTOSS_NEXUS] = (int)analysisSystem.GameLoop / 4032;
+
+
             if (predicationSystem.GetPredictTotal(UnitType.PROTOSS_CYBERNETICSCORE) > 0)
+            {
                 buildSystem.requireUnitCount[UnitType.PROTOSS_GATEWAY] = 3;
+                buildSystem.requireUnitCount[UnitType.PROTOSS_ZEALOT] = 2;
+                buildSystem.requireUnitCount[UnitType.PROTOSS_ADEPT] = 6;
+                buildSystem.requireUnitCount[UnitType.PROTOSS_STALKER] = 6;
+            }
             if (predicationSystem.GetPredictTotal(UnitType.PROTOSS_WARPGATE) > 0)
             {
-                buildSystem.requireUnitCount[UnitType.PROTOSS_GATEWAY] = 4 - predicationSystem.GetPredictTotal(UnitType.PROTOSS_WARPGATE);
-                buildSystem.requireUnitCount[UnitType.PROTOSS_ZEALOT] = 10;
-
+                buildSystem.requireUnitCount[UnitType.PROTOSS_GATEWAY] = 5 - predicationSystem.GetPredictTotal(UnitType.PROTOSS_WARPGATE) + analysisSystem.Minerals / 600;
+                buildSystem.requireUnitCount[UnitType.PROTOSS_ADEPT] = 12;
+                buildSystem.requireUnitCount[UnitType.PROTOSS_STALKER] = 12;
+                //buildSystem.requireUnitCount[UnitType.PROTOSS_SENTRY] = 0;
             }
+            if ((int)analysisSystem.GameLoop > 5400)
+            {
+                buildSystem.requireUnitCount[UnitType.PROTOSS_ZEALOT] = 0;
+            }
+            int workerCount = Math.Min(nexusCount * 16 + 9, 60);
+            buildSystem.requireUnitCount[UnitType.PROTOSS_PROBE] = workerCount;
 
             var unitDictionary = analysisSystem.unitDictionary;
 
@@ -139,10 +154,10 @@ namespace MilkWangP1
                 markerSystem.AddMark(deadUnit.position, "Dead", 30);
             }
 
-            int attackCount = 10;
+            int attackCount = Math.Min(11 + ((int)analysisSystem.GameLoop / 4032), 20);
             foreach (var army in armies)
             {
-                if (armies.Count > attackCount)
+                if ((int)analysisSystem.GameLoop > 5400)
                 {
                     battleSystem.units[army] = UnitBattleType.AttackMain;
                 }

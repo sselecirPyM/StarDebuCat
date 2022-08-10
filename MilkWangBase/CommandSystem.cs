@@ -91,7 +91,7 @@ namespace MilkWangBase
         }
         public Abilities GetBuildAbility(UnitType unitType)
         {
-            return (Abilities)analysisSystem.unitTypeDatas[(int)unitType].AbilityId;
+            return (Abilities)analysisSystem.GetUnitTypeData(unitType).AbilityId;
         }
     }
 }

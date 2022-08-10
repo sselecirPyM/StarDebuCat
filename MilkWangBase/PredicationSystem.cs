@@ -43,7 +43,8 @@ namespace MilkWangBase
             foreach (var unit in myUnits)
             {
                 UnitType unitType = GetAlias(unit.type);
-                var unitTypeData = analysisSystem.unitTypeDatas[(int)unit.type];
+                var unitTypeData = analysisSystem.GetUnitTypeData(unit.type);
+                float timeRemain = unitTypeData.BuildTime * (1 - unit.buildProgress);
                 if (unit.buildProgress == 1.0f)
                 {
                     buildCompletedUnitTypes.Increment(unitType);
@@ -54,6 +55,7 @@ namespace MilkWangBase
                     buildNotCompletedUnits.Add(unit);
                     if (unitTypeData.Race != SC2APIProtocol.Race.Terran)
                     {
+                        if(timeRemain < 30 * 22.4f)
                         foodPrediction20s += unitTypeData.FoodProvided;
                         predicatedUnitTypes.Increment(unitType);
                     }
@@ -64,7 +66,7 @@ namespace MilkWangBase
 
             foreach (var unit in buildNotCompletedUnits)
             {
-                var typeData = analysisSystem.unitTypeDatas[(int)unit.type];
+                var typeData = analysisSystem.GetUnitTypeData(unit.type);
                 float timeRemain = typeData.BuildTime * (1 - unit.buildProgress);
                 if (timeRemain < 20 * 22.4f)
                 {
@@ -146,11 +148,10 @@ namespace MilkWangBase
                     {
                         var predicatedUnitType = GetAlias((UnitType)buildUnit.UnitId);
                         predicatedUnitTypes.Increment(predicatedUnitType);
+                        float timeRemain = buildUnit.BuildTime * (1 - order.Progress);
                         if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None &&
                             buildUnit.FoodRequired > 0)
                         {
-                            float timeRemain = buildUnit.BuildTime * (1 - order.Progress);
-
                             if (timeRemain < 20 * 22.4f)
                                 foodPrediction20s -= buildUnit.FoodRequired;
                             timeRemain += buildUnit.BuildTime;
@@ -162,7 +163,7 @@ namespace MilkWangBase
                                 vespinePredict -= buildUnit.VespeneCost;
                             }
                         }
-                        if (buildUnit.FoodProvided > 0)
+                        if (buildUnit.FoodProvided > 0 && timeRemain < 30 * 22.4f)
                         {
                             foodPrediction20s += buildUnit.FoodProvided;
                         }
@@ -197,7 +198,7 @@ namespace MilkWangBase
 
         UnitType GetAlias(UnitType unitType)
         {
-            var unitType1 = (UnitType)analysisSystem.unitTypeDatas[(int)unitType].UnitAlias;
+            var unitType1 = (UnitType)analysisSystem.GetUnitTypeData(unitType).UnitAlias;
             if (unitType1 != UnitType.INVALID)
                 return unitType1;
             return unitType;

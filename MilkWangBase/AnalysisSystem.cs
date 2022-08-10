@@ -492,5 +492,15 @@ namespace MilkWangBase
             UnitType.PROTOSS_STARGATE,
             UnitType.ZERG_LARVA,
         };
+
+        public SC2APIProtocol.UnitTypeData GetUnitTypeData(Unit unit)
+        {
+            return unitTypeDatas[(int)unit.type];
+        }
+
+        public SC2APIProtocol.UnitTypeData GetUnitTypeData(UnitType unitType)
+        {
+            return unitTypeDatas[(int)unitType];
+        }
     }
 }

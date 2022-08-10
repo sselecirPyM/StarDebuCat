@@ -56,9 +56,15 @@ namespace StarDebuCat.Data
             UnitType.TERRAN_ORBITALCOMMANDFLYING,
             UnitType.TERRAN_PLANETARYFORTRESS,
             UnitType.ZERG_HATCHERY,
-            UnitType.ZERG_HATCHERY,
             UnitType.ZERG_LAIR,
             UnitType.ZERG_HIVE,
+        };
+
+        public static HashSet<UnitType> CommandCenters1 { get; } = new()
+        {
+            UnitType.PROTOSS_NEXUS,
+            UnitType.TERRAN_COMMANDCENTER,
+            UnitType.ZERG_HATCHERY,
         };
 
         public static HashSet<UnitType> Army { get; } = new()

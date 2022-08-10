@@ -114,21 +114,30 @@ namespace MilkWangBase
                     if (!analysisSystem.abilitiesData[(int)worker.orders[0].AbilityId].IsBuilding)
                         workersAvailable.Add(worker);
                     if (analysisSystem.unitDictionary.TryGetValue(worker.orders[0].TargetUnitTag, out var targetUnit))
-                    {
                         workerBuildTargets.Add(targetUnit);
-                    }
                 }
             }
 
             foreach (var worker in idleWorkers)
             {
-                minerals1.ClearSearch(nearByMineral, worker.position, 20);
-                if (nearByMineral.Count == 0)
-                    minerals1.Search(nearByMineral, worker.position, 40);
-                if (nearByMineral.Count > 0)
+                if (commandCenters.Count > 0)
                 {
-                    var unit = nearByMineral.GetRandom(random);
-                    commandSystem.EnqueueAbility(worker, Abilities.SMART, unit);
+                    var commanderCenter = commandCenters.GetRandom(random);
+                    for (int i = 0; i < 3; i++)
+                        if (commanderCenter.assignedHarvesters > commanderCenter.idealHarvesters * 1.5f)
+                            commanderCenter = commandCenters.GetRandom(random);
+
+                    float range = 10;
+                    minerals1.ClearSearch(nearByMineral, commanderCenter.position, range);
+                    if (nearByMineral.Count == 0)
+                        minerals1.Search(nearByMineral, commanderCenter.position, 40);
+                    if (nearByMineral.Count == 0)
+                        minerals1.Search(nearByMineral, commanderCenter.position, 80);
+                    if (nearByMineral.Count > 0)
+                    {
+                        var unit = nearByMineral.GetRandom(random);
+                        commandSystem.EnqueueAbility(worker, Abilities.SMART, unit);
+                    }
                 }
             }
 
@@ -139,7 +148,7 @@ namespace MilkWangBase
                 minerals1.ClearSearch(nearByMineral, position, 10);
                 geysers1.Search(vespineCanBuild, position, 12);
 
-                var unitTypeData = analysisSystem.unitTypeDatas[(int)commandCenter.type];
+                var unitTypeData = analysisSystem.GetUnitTypeData(commandCenter.type);
                 var race = unitTypeData.Race;
                 UnitType workerType = GetWorkerType((Race)race);
 
@@ -158,6 +167,38 @@ namespace MilkWangBase
                     {
                         Train(commandCenter, workerType);
                     }
+                }
+            }
+
+            foreach (var commandCenter in DData.CommandCenters1)
+            {
+                if (NeedBuildUnit(commandCenter) && workersAvailable.Count > 0)
+                {
+                    var point1 = Vector2.Zero;
+                    var point = point1;
+
+                    bool canBuild = false;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        point1 = resourcePoints.GetRandom(random);
+                        if (commandCenters.All(u => Vector2.Distance(u.position, point1) > 7))
+                        {
+                            canBuild = true;
+                            point = point1;
+                        }
+                        if (canBuild && commandCenters.Any(u => Vector2.Distance(u.position, point1) < 60))
+                        {
+                            break;
+                        }
+                    }
+                    var worker = workersAvailable.GetRandom(random);
+                    if (canBuild)
+                    {
+                        if (!Build(worker, commandCenter, point))
+                            mineralRemain -= 400;
+                    }
+                    else
+                        mineralRemain -= 400;
                 }
             }
 
@@ -192,8 +233,7 @@ namespace MilkWangBase
                 var worker = workersAvailable.GetRandom(random);
                 if (worker.orders.Count > 0 && worker.orders[0].TargetUnitTag != 0)
                 {
-                    if (analysisSystem.unitDictionary.TryGetValue(worker.orders[0].TargetUnitTag, out var target) &&
-                        DData.Refinery.Contains(target.type) && (target.assignedHarvesters > 3 || target.buildProgress != 1))
+                    if (analysisSystem.unitDictionary.TryGetValue(worker.orders[0].TargetUnitTag, out var target) && DData.Refinery.Contains(target.type) && (target.assignedHarvesters > 3 || target.buildProgress != 1))
                     {
                         workersAvailable.Remove(worker);
                         commandSystem.EnqueueAbility(worker, Abilities.STOP);
@@ -204,6 +244,24 @@ namespace MilkWangBase
                 {
                     workersAvailable.Remove(worker);
                     commandSystem.EnqueueAbility(worker, Abilities.HARVEST_GATHER, _refinery);
+                }
+            }
+            if (workersAvailable.Count > 0)
+            {
+                var worker = workersAvailable.GetRandom(random);
+                if (worker.orders.Count > 0 && worker.orders[0].TargetUnitTag != 0)
+                {
+                    if (analysisSystem.unitDictionary.TryGetValue(worker.orders[0].TargetUnitTag, out var target) && DData.CommandCenters.Contains(target.type) &&
+                        target.assignedHarvesters > target.idealHarvesters * 1.5)
+                    {
+                        workersAvailable.Remove(worker);
+                        minerals1.Search(nearByMineral, worker.position, 40);
+                        if (nearByMineral.Count > 0)
+                        {
+                            var unit = nearByMineral.GetRandom(random);
+                            commandSystem.EnqueueAbility(worker, Abilities.SMART, unit);
+                        }
+                    }
                 }
             }
 
@@ -253,7 +311,7 @@ namespace MilkWangBase
                     var _trainType = unitTypes.GetRandom(random);
                     if (ReadyToBuild(_trainType))
                     {
-                        if (analysisSystem.unitTypeDatas[(int)_trainType].RequireAttached && factory.addOnTag == 0)
+                        if (analysisSystem.GetUnitTypeData(_trainType).RequireAttached && factory.addOnTag == 0)
                         {
                             continue;
                         }
@@ -297,7 +355,7 @@ namespace MilkWangBase
 
         bool Warp(Unit unit, UnitType unitType, Vector2 position, float randomSize)
         {
-            var unitTypeData = analysisSystem.unitTypeDatas[(int)unitType];
+            var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
             int mineralCost = (int)unitTypeData.MineralCost;
             int vespeneCost = (int)unitTypeData.VespeneCost;
             int foodCost = (int)unitTypeData.FoodRequired;
@@ -334,13 +392,6 @@ namespace MilkWangBase
 
         bool Build(Unit unit, UnitType unitType, Vector2 position, float randomSize)
         {
-            var unitTypeData = analysisSystem.unitTypeDatas[(int)unitType];
-            int mineralCost = (int)unitTypeData.MineralCost;
-            int vespeneCost = (int)unitTypeData.VespeneCost;
-            int foodCost = (int)unitTypeData.FoodRequired;
-            if (mineralRemain < mineralCost && mineralCost != 0 || vespeneRemain < vespeneCost && vespeneCost != 0 || foodRemain < foodCost && foodCost != 0)
-                return false;
-
             position += new Vector2(random.NextFloat(-randomSize, randomSize), random.NextFloat(-randomSize, randomSize));
             for (int i = 0; i < 7; i++)
                 if (placementImage.Query(position) == 0)
@@ -351,6 +402,18 @@ namespace MilkWangBase
                 {
                     break;
                 }
+            return Build(unit, unitType, position);
+        }
+
+        bool Build(Unit unit, UnitType unitType, Vector2 position)
+        {
+            var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
+            int mineralCost = (int)unitTypeData.MineralCost;
+            int vespeneCost = (int)unitTypeData.VespeneCost;
+            int foodCost = (int)unitTypeData.FoodRequired;
+            if (mineralRemain < mineralCost && mineralCost != 0 || vespeneRemain < vespeneCost && vespeneCost != 0 || foodRemain < foodCost && foodCost != 0)
+                return false;
+
             predicationSystem.predicatedUnitTypes.Increment(unitType);
             commandSystem.EnqueueBuild(unit, unitType, position);
             mineralRemain -= mineralCost;
@@ -396,7 +459,7 @@ namespace MilkWangBase
 
         bool ResourceEnough(UnitType unitType)
         {
-            var unitTypeData = analysisSystem.unitTypeDatas[(int)unitType];
+            var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
             int mineralCost = (int)unitTypeData.MineralCost;
             int vespeneCost = (int)unitTypeData.VespeneCost;
             int foodCost = (int)unitTypeData.FoodRequired;
@@ -416,7 +479,7 @@ namespace MilkWangBase
 
         bool Train(Unit unit, UnitType unitType)
         {
-            var unitTypeData = analysisSystem.unitTypeDatas[(int)unitType];
+            var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
             int mineralCost = (int)unitTypeData.MineralCost;
             int vespeneCost = (int)unitTypeData.VespeneCost;
             int foodCost = (int)unitTypeData.FoodRequired;
