@@ -12,16 +12,13 @@ namespace MilkWang1;
 
 public class TerranBot1
 {
-    AnalysisSystem analysisSystem;
-    PredicationSystem predicationSystem;
+    AnalysisSystem1 analysisSystem;
+    PredicationSystem1 predicationSystem;
     MarkerSystem markerSystem;
     BattleSystem1 battleSystem;
     BuildSystem1 buildSystem;
 
     Random random = new Random();
-
-    [Find("ReadyToPlay")]
-    bool readyToPlay;
 
 
     [XFind("CollectUnits", Alliance.Enemy)]
@@ -59,8 +56,6 @@ public class TerranBot1
 
     void Update()
     {
-        if (!readyToPlay)
-            return;
 
         if (!initialized)
             PostInitialize();

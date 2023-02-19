@@ -3,14 +3,11 @@ using SC2APIProtocol;
 using StarDebuCat;
 using System;
 
-namespace MilkWangBase;
+namespace MilkWang1;
 
-public class InputSystem
+public class InputSystem1
 {
     public bool exitProgram = false;
-
-    [Diffusion("Frame")]
-    public ulong frame = 0;
 
     [Diffusion("ReadyToPlay")]
     public bool readyToPlay = false;
@@ -62,7 +59,6 @@ public class InputSystem
             return;
 
         gameConnection.RequestStep(1);
-        frame++;
     }
 
     public void StartGame()

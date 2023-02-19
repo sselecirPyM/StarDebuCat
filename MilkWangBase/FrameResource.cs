@@ -29,9 +29,6 @@ public class FrameResource
     public float SpentVespene = new();
     public float FoodUsedArmy = new();
 
-    //public float FoodUsedX = new();
-    //public float FoodCapX = new();
-
     public int Minerals;
     public int Vespene;
     public int ArmyCount;

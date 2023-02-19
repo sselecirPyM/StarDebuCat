@@ -1,5 +1,4 @@
 ﻿using MilkWangBase;
-using MilkWangBase.Attributes;
 using StarDebuCat;
 using StarDebuCat.Data;
 using System;
@@ -15,14 +14,14 @@ public struct TagPosition
 }
 public class DebugSystem
 {
-    AnalysisSystem analysisSystem;
-    GameConnection gameConnection;
+    public GameConnection gameConnection;
+
+    public bool enable;
+    AnalysisSystem1 analysisSystem;
     BuildSystem1 buildSystem;
     TerranBot1 bot;
     MarkerSystem markerSystem;
 
-    [Find("ReadyToPlay")]
-    bool readyToPlay;
 
     public List<(Unit, string)> tagUnits = new();
     public List<(Vector2, string)> tagPositions = new();
@@ -32,7 +31,7 @@ public class DebugSystem
     int _debugSphereCount = 0;
     void Update()
     {
-        if (!readyToPlay)
+        if (!enable)
             return;
         if (analysisSystem.Debugging)
             Debug();

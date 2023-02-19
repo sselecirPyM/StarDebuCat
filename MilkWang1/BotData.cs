@@ -11,6 +11,10 @@ public class BotData
 
     public Dictionary<UnitType, Abilities> onIdle;
 
+    public UnitType supplyBuilding;
+    public UnitType supplyUnit;
+    public UnitType workerType;
+
     public object[] receptors;
     public object[] runs;
 }

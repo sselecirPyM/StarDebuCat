@@ -129,7 +129,6 @@ public class GameConnection
     public void SendMessage(Request request)
     {
         var sendBuf = ArrayPool<byte>.Shared.Rent(1024 * 1024);
-        //var sendBuf = new byte[1024 * 1024];
         var outStream = new CodedOutputStream(sendBuf);
         request.WriteTo(outStream);
         using (CancellationTokenSource cancellationSource = new CancellationTokenSource())
@@ -142,7 +141,7 @@ public class GameConnection
     }
     public Response ReceiveMessage()
     {
-        var receiveBuf = new byte[1024 * 1024];
+        var receiveBuf = ArrayPool<byte>.Shared.Rent(1024 * 1024);
         var finished = false;
         var currentPosition = 0;
         while (!finished)
@@ -170,8 +169,9 @@ public class GameConnection
                 finished = result.EndOfMessage;
             }
         }
-        var response = Response.Parser.ParseFrom(new CodedInputStream(receiveBuf, 0, currentPosition));
+        var response = Response.Parser.ParseFrom(receiveBuf, 0, currentPosition);
         status = response.Status;
+        ArrayPool<byte>.Shared.Return(receiveBuf);
         return response;
     }
 

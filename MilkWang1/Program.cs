@@ -1,5 +1,4 @@
 ﻿using CommandLine;
-using MilkWangBase.Core;
 using MilkWangBase.Utility;
 using Newtonsoft.Json;
 using System.IO;
@@ -18,6 +17,7 @@ internal class Program
             {
                 "-g",port.ToString(),
                 "-o",port.ToString(),
+                "--Debug",
                 "-m","BerlingradAIE.SC2Map"
             };
         }
@@ -29,33 +29,14 @@ internal class Program
     {
         var botData = JsonConvert.DeserializeObject<BotData>(File.ReadAllText("BotData/terran.json"),
             new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All });
-        var controller = new BotController();
-        Fusion fusion;
-
-        fusion = new Fusion(controller);
-        controller.terranBot1.BotData = botData;
-        controller.battleSystem.BotData = botData;
-        controller.buildSystem.BotData = botData;
-        var inputSystem = controller.inputSystem;
-        inputSystem.ladderGame = true;
-        inputSystem.Race = SC2APIProtocol.Race.Terran;
-        inputSystem.port = clArgs.StartPort;
-        inputSystem.gamePort = clArgs.GamePort;
-        if (clArgs.Map != null)
+        var controller = new BotController
         {
-            StarDebuCat.Utility.SC2GameHelp.LaunchSC2(clArgs.StartPort, out var maps);
-            inputSystem.map = maps + "/" + clArgs.Map;
-            inputSystem.ladderGame = false;
-            inputSystem.ComputerDifficulty = clArgs.ComputerDifficulty;
-            inputSystem.ComputerRace = clArgs.ComputerRace;
-        }
-        fusion.InitializeSystems();
-
-        while (!controller.inputSystem.exitProgram)
-        {
-            fusion.Update();
-        }
-        fusion.Dispose();
-
+            CLArgs = clArgs,
+            botData = botData
+        };
+        controller.Initialize();
+        while (!controller.exitProgram)
+            controller.Update();
+        controller.Update();
     }
 }

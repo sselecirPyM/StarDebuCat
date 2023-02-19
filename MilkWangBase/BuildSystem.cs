@@ -200,16 +200,16 @@ public class BuildSystem
             }
         }
 
-        if (predicationSystem.foodPrediction20s + foodRemain < 4)
+        if (predicationSystem.foodPrediction20s + foodRemain < 4 && analysisSystem.race != Race.Zerg)
         {
-            if (analysisSystem.race != Race.Zerg)
+            if (workersAvailable.Count > 0)
             {
-                if (workersAvailable.Count > 0)
-                {
-                    var worker = workersAvailable.GetRandom(random);
-                    if (!Build(worker, GetSupplyType(analysisSystem.race), worker.position, 10))
-                        mineralRemain -= 100;
-                }
+                var worker = workersAvailable.GetRandom(random);
+                var unitType = GetSupplyType(analysisSystem.race);
+                var unitData = analysisSystem.GetUnitTypeData(unitType);
+                if (!Build(worker, unitType, worker.position, 10))
+                    mineralRemain -= (int)unitData.MineralCost;
+
             }
         }
 

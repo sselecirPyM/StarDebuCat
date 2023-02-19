@@ -1,27 +1,20 @@
-﻿using MilkWangBase.Attributes;
-using StarDebuCat;
+﻿using StarDebuCat;
 using StarDebuCat.Commanding;
 using StarDebuCat.Data;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace MilkWangBase;
+namespace MilkWang1;
 
-public class CommandSystem
+public class CommandSystem1
 {
-    AnalysisSystem analysisSystem;
+    AnalysisSystem1 analysisSystem;
     public GameConnection gameConnection;
-
-    [Find("ReadyToPlay")]
-    bool readyToPlay;
-
 
     public ActionList actionList = new();
 
     void Update()
     {
-        if (!readyToPlay)
-            return;
         gameConnection.RequestAction(actionList.actions);
         actionList.Clear();
 
@@ -35,14 +28,14 @@ public class CommandSystem
         {
             var pos = unit.orders[0].TargetWorldSpacePos;
             var pos1 = new Vector2(pos.X, pos.Y);
-            if (Vector2.DistanceSquared(target, pos1) < 1e-2f)
+            if (Vector2.DistanceSquared(target, pos1) < 1e-1f)
             {
                 return;
             }
         }
         else if (unit.orders.Count == 0)
         {
-            if (Vector2.DistanceSquared(target, unit.position) < 1e-2f)
+            if (Vector2.DistanceSquared(target, unit.position) < 1e-1f)
             {
                 return;
             }

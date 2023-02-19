@@ -47,5 +47,7 @@
       "ZERG_SPAWNINGPOOL",
       "ZERG_EVOLUTIONCHAMBER"
     ]
-  }
+  },
+  "supplyBuilding": "TERRAN_SUPPLYDEPOT",
+  "workerType": "TERRAN_SCV"
 }

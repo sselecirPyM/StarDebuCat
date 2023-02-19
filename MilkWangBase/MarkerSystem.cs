@@ -22,7 +22,6 @@ public class Mark
 }
 public class MarkerSystem
 {
-    AnalysisSystem analysisSystem;
     [Find("ReadyToPlay")]
     bool readyToPlay;
 

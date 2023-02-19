@@ -1,17 +1,15 @@
-﻿using MilkWangBase.Attributes;
+﻿using MilkWangBase;
+using MilkWangBase.Attributes;
 using MilkWangBase.Utility;
 using StarDebuCat.Data;
 using System;
 using System.Collections.Generic;
 
-namespace MilkWangBase;
+namespace MilkWang1;
 
-public class PredicationSystem
+public class PredicationSystem1
 {
-    public AnalysisSystem analysisSystem;
-
-    [Find("ReadyToPlay")]
-    bool readyToPlay;
+    public AnalysisSystem1 analysisSystem;
 
     [XFind("CollectUnits", Alliance.Self)]
     public List<Unit> myUnits;
@@ -31,8 +29,6 @@ public class PredicationSystem
 
     public void Update()
     {
-        if (!readyToPlay)
-            return;
         foodPrediction20s = 0;
         buildCompletedUnitTypes.Clear();
         buildNotCompletedUnitTypes.Clear();

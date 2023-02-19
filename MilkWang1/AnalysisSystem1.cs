@@ -1,4 +1,5 @@
-﻿using MilkWangBase.Attributes;
+﻿using MilkWangBase;
+using MilkWangBase.Attributes;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -8,14 +9,11 @@ using System.Drawing;
 using System.Numerics;
 using System.Reflection;
 
-namespace MilkWangBase;
+namespace MilkWang1;
 
-public class AnalysisSystem
+public class AnalysisSystem1
 {
-    InputSystem inputSystem;
-    [Find("ReadyToPlay")]
-    bool readyToPlay;
-
+    InputSystem1 inputSystem;
 
     public (int, int) MapSize;
     public Rectangle PlayableArea;
@@ -71,8 +69,6 @@ public class AnalysisSystem
 
     void Update()
     {
-        if (!readyToPlay)
-            return;
         Debugging = !inputSystem.ladderGame;
         CollectData();
         CollectScores();
