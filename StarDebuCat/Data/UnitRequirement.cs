@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace StarDebuCat.Data
+namespace StarDebuCat.Data;
+
+public class UnitRequirement
 {
-    public class UnitRequirement
-    {
-        public UnitType UnitType;
+    public UnitType UnitType;
 
-        public UnitType Builder;
+    public UnitType Builder;
 
-        public HashSet<UnitType> Requirements;
+    public HashSet<UnitType> Requirements;
 
-        public bool needLab;
-    }
+    public bool needLab;
 }

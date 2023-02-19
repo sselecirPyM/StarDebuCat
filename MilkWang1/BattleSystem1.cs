@@ -1,4 +1,5 @@
-﻿using MilkWangBase.Attributes;
+﻿using MilkWangBase;
+using MilkWangBase.Attributes;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -6,25 +7,25 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace MilkWangBase;
+namespace MilkWang1;
 
-public enum UnitBattleType
-{
-    Undefined = 0,
-    AttackMain,
-    ProtectArea,
-}
-public struct MicroState
-{
-    public float inEnemyRangeFood;
-    public float enemyInRangeFood;
-    public float friendlyNearByFood;
-    public float enemyMaxRange;
-    public Unit nearestEnemy;
-    public Unit minLifeEnemy;
-    public float nearestDistance;
-}
-public class BattleSystem
+//public enum UnitBattleType
+//{
+//    Undefined = 0,
+//    AttackMain,
+//    ProtectArea,
+//}
+//public struct MicroState
+//{
+//    public float inEnemyRangeFood;
+//    public float enemyInRangeFood;
+//    public float friendlyNearByFood;
+//    public float enemyMaxRange;
+//    public Unit nearestEnemy;
+//    public Unit minLifeEnemy;
+//    public float nearestDistance;
+//}
+public class BattleSystem1
 {
     AnalysisSystem analysisSystem;
     CommandSystem commandSystem;
@@ -32,12 +33,12 @@ public class BattleSystem
     [Find("ReadyToPlay")]
     bool readyToPlay;
 
-
     [XFind("CollectUnits", Alliance.Self, "Army")]
     public List<Unit> armies;
 
-    public Dictionary<Unit, UnitBattleType> units = new();
+    public BotData BotData;
 
+    public Dictionary<Unit, UnitBattleType> units = new();
 
     [XFind("QuadTree", Alliance.Self)]
     public QuadTree<Unit> myUnits1;
@@ -50,10 +51,8 @@ public class BattleSystem
 
     [XFind("CollectUnits", Alliance.Enemy, "Army", "OutOfSight")]
     public List<Unit> outOfSightEnemyArmy;
-    HashSet<Unit> outOfSightEnemyArmy1 = new();
 
     public Vector2 mainTarget;
-
     public Vector2 protectPosition;
 
     public HashSet<Unit> esc = new();
@@ -101,9 +100,6 @@ public class BattleSystem
     Dictionary<Unit, int> enemyChaseCount = new();
     void MicroOperate()
     {
-        outOfSightEnemyArmy1.Clear();
-        foreach (var unit in outOfSightEnemyArmy)
-            outOfSightEnemyArmy1.Add(unit);
         microState.Clear();
         enemyChaseCount.Clear();
         foreach (var unit in armies)
@@ -221,15 +217,15 @@ public class BattleSystem
                     if (forward)
                     {
                         if (push)
-                            commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, 0.2f, Math.Min(2.0f, fireRange)));
+                            commandSystem.EnqueueAbility(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, 0.2f, Math.Min(2.0f, fireRange)));
                         else if (enemyMaxRange + 0.5f >= fireRange)
-                            commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
+                            commandSystem.EnqueueAbility(unit, Abilities.ATTACK, enemy.position);
                         else
-                            commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, enemyMaxRange + 1.5f)));
+                            commandSystem.EnqueueAbility(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, enemyMaxRange + 1.5f)));
                     }
                     else
                     {
-                        commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, enemyMaxRange + 1.5f)));
+                        commandSystem.EnqueueAbility(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, enemyMaxRange + 1.5f)));
                     }
                     esc.Add(unit);
                 }
@@ -240,12 +236,12 @@ public class BattleSystem
                 }
                 else if (forward)
                 {
-                    commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
+                    commandSystem.EnqueueAbility(unit, Abilities.ATTACK, enemy.position);
                     esc.Add(unit);
                 }
                 else
                 {
-                    commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Max(fireRange, enemyMaxRange + 1.0f)));
+                    commandSystem.EnqueueAbility(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Max(fireRange, enemyMaxRange + 1.0f)));
                     esc.Add(unit);
                 }
             }

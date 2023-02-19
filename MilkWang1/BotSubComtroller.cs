@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StarDebuCat.Attributes
+namespace MilkWang1;
+
+public class BotSubComtroller
 {
-    public class SystemAttribute : Attribute
-    {
-    }
 }

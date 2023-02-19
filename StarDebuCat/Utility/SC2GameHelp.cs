@@ -35,13 +35,16 @@ namespace StarDebuCat.Utility
             {
                 throw new Exception("Unable to find:" + executeInfo + ". Make sure you started the game successfully at least once.");
             }
-
-            var processStartInfo = new ProcessStartInfo(starcraftExe)
+            int runCount = Process.GetProcessesByName("SC2_x64").Length;
+            if (runCount == 0)
             {
-                Arguments = string.Format("-listen {0} -port {1} -displayMode 0", "127.0.0.1", port),
-                WorkingDirectory = Path.Combine(starcraftDir, "Support64")
-            };
-            Process.Start(processStartInfo);
+                var processStartInfo = new ProcessStartInfo(starcraftExe)
+                {
+                    Arguments = string.Format("-listen {0} -port {1} -displayMode 0", "127.0.0.1", port),
+                    WorkingDirectory = Path.Combine(starcraftDir, "Support64")
+                };
+                Process.Start(processStartInfo);
+            }
         }
     }
 }

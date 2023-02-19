@@ -9,4 +9,10 @@
     <ProjectReference Include="..\MilkWangBase\MilkWangBase.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="BotData\terran.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

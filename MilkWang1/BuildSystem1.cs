@@ -1,4 +1,5 @@
-﻿using MilkWangBase.Attributes;
+﻿using MilkWangBase;
+using MilkWangBase.Attributes;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -7,9 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace MilkWangBase;
+namespace MilkWang1;
 
-public class BuildSystem
+public class BuildSystem1
 {
     AnalysisSystem analysisSystem;
     CommandSystem commandSystem;
@@ -33,14 +34,6 @@ public class BuildSystem
     [XFind("CollectUnits", Alliance.Self, "Building")]
     public List<Unit> buildings;
 
-    [XFind("CollectUnits", Alliance.Self, "Building", UnitType.TERRAN_BARRACKSFLYING)]
-    public List<Unit> barracksFlying;
-
-    [XFind("CollectUnits", Alliance.Self, "Building", UnitType.TERRAN_FACTORYFLYING)]
-    public List<Unit> factoryFlying;
-
-    [XFind("CollectUnits", Alliance.Self, "Building", UnitType.TERRAN_STARPORTFLYING)]
-    public List<Unit> starportFlying;
 
     [XFind("CollectUnits", Alliance.Self, "Factory")]
     public List<Unit> factories;
@@ -73,6 +66,8 @@ public class BuildSystem
     public Dictionary<UnitType, int> requireUnitCount = new();
     public HashSet<UpgradeType> requireUpgrade = new();
 
+    public BotData BotData;
+
     public bool randomlyUpgrade = true;
 
     int mineralRemain;
@@ -87,6 +82,13 @@ public class BuildSystem
     List<Unit> vespineCanBuild = new();
     HashSet<Unit> workerBuildTargets = new();
 
+    UnitType[] idleUnits;
+    List<Unit> idleUnits1 = new();
+    void Initialize()
+    {
+        idleUnits = BotData.onIdle.Keys.ToArray();
+    }
+
     void Update()
     {
         if (!readyToPlay)
@@ -96,7 +98,6 @@ public class BuildSystem
         {
             PostInitialize();
         }
-
         var frameResource = analysisSystem.currentFrameResource;
 
         mineralRemain = frameResource.Minerals;
@@ -193,23 +194,20 @@ public class BuildSystem
                 if (canBuild)
                 {
                     if (!Build(worker, commandCenter, point))
-                        mineralRemain -= 400;
+                        mineralRemain -= (int)analysisSystem.GetUnitTypeData(commandCenter).MineralCost;
                 }
                 else
-                    mineralRemain -= 400;
+                    mineralRemain -= (int)analysisSystem.GetUnitTypeData(commandCenter).MineralCost;
             }
         }
 
-        if (predicationSystem.foodPrediction20s + foodRemain < 4)
+        if (predicationSystem.foodPrediction20s + foodRemain < 4 && analysisSystem.race != Race.Zerg)
         {
-            if (analysisSystem.race != Race.Zerg)
+            if (workersAvailable.Count > 0)
             {
-                if (workersAvailable.Count > 0)
-                {
-                    var worker = workersAvailable.GetRandom(random);
-                    if (!Build(worker, GetSupplyType(analysisSystem.race), worker.position, 10))
-                        mineralRemain -= 100;
-                }
+                var worker = workersAvailable.GetRandom(random);
+                if (!Build(worker, GetSupplyType(analysisSystem.race), worker.position, 10))
+                    mineralRemain -= 100;
             }
         }
 
@@ -263,15 +261,15 @@ public class BuildSystem
             }
         }
 
-        foreach (var factory in barracksFlying)
-            if (factory.orders.Count == 0)
-                commandSystem.EnqueueAbility(factory, Abilities.LAND_BARRACKS, factory.position + random.NextVector2(-5, 5));
-        foreach (var factory in factoryFlying)
-            if (factory.orders.Count == 0)
-                commandSystem.EnqueueAbility(factory, Abilities.LAND_FACTORY, factory.position + random.NextVector2(-5, 5));
-        foreach (var factory in starportFlying)
-            if (factory.orders.Count == 0)
-                commandSystem.EnqueueAbility(factory, Abilities.LAND_STARPORT, factory.position + random.NextVector2(-5, 5));
+        analysisSystem._CollectUnits(idleUnits1, new object[] { Alliance.Self, idleUnits });
+        foreach (var unit in idleUnits1)
+        {
+            if (unit.orders.Count == 0)
+            {
+                commandSystem.EnqueueAbility(unit, BotData.onIdle[unit.type], unit.position + random.NextVector2(-5, 5));
+            }
+        }
+
         foreach (var barracks1 in factories)
         {
             UnitType labType;
@@ -336,6 +334,7 @@ public class BuildSystem
             }
         }
 
+        var BuildBuildings = BotData.unitLists["BuildBuildings"];
         foreach (var buildingType in BuildBuildings)
         {
             if (workersAvailable.Count > 0 && ReadyToBuild(buildingType))
@@ -519,29 +518,6 @@ public class BuildSystem
             _ => UnitType.ZERG_EXTRACTOR,
         };
     }
-
-    static List<UnitType> BuildBuildings = new()
-    {
-        UnitType.TERRAN_BARRACKS,
-        UnitType.TERRAN_ENGINEERINGBAY,
-        UnitType.TERRAN_GHOSTACADEMY,
-        UnitType.TERRAN_FACTORY,
-        UnitType.TERRAN_ARMORY,
-        UnitType.TERRAN_STARPORT,
-        UnitType.TERRAN_FUSIONCORE,
-        UnitType.PROTOSS_GATEWAY,
-        UnitType.PROTOSS_CYBERNETICSCORE,
-        UnitType.PROTOSS_FORGE,
-        UnitType.PROTOSS_TWILIGHTCOUNCIL,
-        UnitType.PROTOSS_TEMPLARARCHIVE,
-        UnitType.PROTOSS_DARKSHRINE,
-        UnitType.PROTOSS_ROBOTICSBAY,
-        UnitType.PROTOSS_ROBOTICSFACILITY,
-        UnitType.PROTOSS_STARGATE,
-        UnitType.PROTOSS_FLEETBEACON,
-        UnitType.ZERG_SPAWNINGPOOL,
-        UnitType.ZERG_EVOLUTIONCHAMBER,
-    };
 
     void PostInitialize()
     {
