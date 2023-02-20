@@ -223,7 +223,7 @@ public class AnalysisSystem
             UsedMineralsArmy = scoreDetails.UsedMinerals.Army,
             UsedVespeneArmy = scoreDetails.UsedVespene.Army,
             FoodUsedArmy = scoreDetails.FoodUsed.Army,
-            
+
 
             Minerals = (int)playerCommon.Minerals,
             Vespene = (int)playerCommon.Vespene,
@@ -249,10 +249,11 @@ public class AnalysisSystem
         GameLoop = observation.GameLoop;
 
         hasUpgrade.Clear();
-        foreach (var up in observation.RawData.Player.UpgradeIds)
-        {
-            hasUpgrade.Add((UpgradeType)up);
-        }
+        if (observation.RawData.Player.UpgradeIds != null)
+            foreach (var up in observation.RawData.Player.UpgradeIds)
+            {
+                hasUpgrade.Add((UpgradeType)up);
+            }
     }
 
     HashSet<ulong> previousUnit = new();

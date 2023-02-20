@@ -31,18 +31,21 @@ public class CommandSystem
 
     public void OptimiseCommand(Unit unit, Abilities abilities, Vector2 target)
     {
-        if (unit.orders.Count > 0 && (Abilities)unit.orders[0].AbilityId == abilities)
+        if (unit == null)
+            return;
+        if (unit.orders.Count > 0 && (Abilities)unit.orders[0].AbilityId == abilities &&
+            unit.orders[0].TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetWorldSpacePos)
         {
             var pos = unit.orders[0].TargetWorldSpacePos;
             var pos1 = new Vector2(pos.X, pos.Y);
-            if (Vector2.DistanceSquared(target, pos1) < 1e-2f)
+            if (Vector2.DistanceSquared(target, pos1) < 1e-1f)
             {
                 return;
             }
         }
         else if (unit.orders.Count == 0)
         {
-            if (Vector2.DistanceSquared(target, unit.position) < 1e-2f)
+            if (Vector2.DistanceSquared(target, unit.position) < 1e-1f)
             {
                 return;
             }
@@ -55,36 +58,39 @@ public class CommandSystem
     public void EnqueueAbility(Unit unit, Abilities abilities, Unit target) => actionList.EnqueueAbility(unit, abilities, target.Tag);
     public void EnqueueAbility(Unit unit, Abilities abilities, ulong target) => actionList.EnqueueAbility(unit, abilities, target);
 
-    public void EnqueueAbility(IEnumerable<Unit> unit, Abilities abilities) => actionList.EnqueueAbility(unit, abilities);
-    public void EnqueueAbility(IEnumerable<Unit> unit, Abilities abilities, Vector2 target) => actionList.EnqueueAbility(unit, abilities, target);
+    public void EnqueueAbility(IReadOnlyList<Unit> unit, Abilities abilities) => actionList.EnqueueAbility(unit, abilities);
+    public void EnqueueAbility(IReadOnlyList<Unit> unit, Abilities abilities, Vector2 target) => actionList.EnqueueAbility(unit, abilities, target);
 
     public void EnqueueBuild(Unit unit, UnitType unitType, Vector2 position) => EnqueueBuild(unit.Tag, unitType, position);
     public void EnqueueBuild(ulong unit, UnitType unitType, Vector2 position)
     {
         var cmd = ActionList.Command(GetBuildAbility(unitType));
-        cmd.ActionRaw.UnitCommand.UnitTags.Add(unit);
         cmd.ActionRaw.UnitCommand.TargetWorldSpacePos = new SC2APIProtocol.Point2D
         {
             X = position.X,
             Y = position.Y
         };
-        actionList.actions.Add(cmd);
+        //cmd.ActionRaw.UnitCommand.UnitTags.Add(unit);
+        //actionList.actions.Add(cmd);
+        actionList.UnitsAction(cmd, unit);
     }
     public void EnqueueBuild(Unit unit, UnitType unitType, Unit target) => EnqueueBuild(unit.Tag, unitType, target.Tag);
     public void EnqueueBuild(ulong unit, UnitType unitType, ulong target)
     {
         var cmd = ActionList.Command(GetBuildAbility(unitType));
-        cmd.ActionRaw.UnitCommand.UnitTags.Add(unit);
         cmd.ActionRaw.UnitCommand.TargetUnitTag = target;
-        actionList.actions.Add(cmd);
+        //cmd.ActionRaw.UnitCommand.UnitTags.Add(unit);
+        //actionList.actions.Add(cmd);
+        actionList.UnitsAction(cmd, unit);
     }
 
     public void EnqueueTrain(Unit unit, UnitType unitType) => EnqueueTrain(unit.Tag, unitType);
     public void EnqueueTrain(ulong unit, UnitType unitType)
     {
         var cmd = ActionList.Command(GetBuildAbility(unitType));
-        cmd.ActionRaw.UnitCommand.UnitTags.Add(unit);
-        actionList.actions.Add(cmd);
+        //cmd.ActionRaw.UnitCommand.UnitTags.Add(unit);
+        //actionList.actions.Add(cmd);
+        actionList.UnitsAction(cmd, unit);
     }
     Abilities GetBuildAbility(UnitType unitType)
     {

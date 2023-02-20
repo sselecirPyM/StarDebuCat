@@ -1,5 +1,4 @@
-﻿using MilkWangBase;
-using MilkWangBase.Attributes;
+﻿using MilkWangBase.Attributes;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -101,11 +100,11 @@ public class BuildSystem1
         workerBuildTargets.Clear();
         foreach (var worker1 in workers)
         {
-            if (worker1.orders.Count > 0)
+            if (worker1.TryGetOrder(out var order))
             {
-                if (!analysisSystem.abilitiesData[(int)worker1.orders[0].AbilityId].IsBuilding)
+                if (!analysisSystem.abilitiesData[(int)order.AbilityId].IsBuilding)
                     workersAvailable.Add(worker1);
-                if (analysisSystem.unitDictionary.TryGetValue(worker1.orders[0].TargetUnitTag, out var targetUnit))
+                if (analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var targetUnit))
                     workerBuildTargets.Add(targetUnit);
             }
         }
@@ -221,9 +220,9 @@ public class BuildSystem1
         }
         if (workersAvailable.Count > 0 && refinery.Count > 0 && TryGetAvailableWorker(out worker))
         {
-            if (worker.orders.Count > 0 && worker.orders[0].TargetUnitTag != 0)
+            if (worker.TryGetOrder(out var order) && order.TargetUnitTag != 0)
             {
-                if (analysisSystem.unitDictionary.TryGetValue(worker.orders[0].TargetUnitTag, out var target) && DData.Refinery.Contains(target.type) && (target.assignedHarvesters > 3 || target.buildProgress != 1))
+                if (analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var target) && DData.Refinery.Contains(target.type) && (target.assignedHarvesters > 3 || target.buildProgress != 1))
                 {
                     workersAvailable.Remove(worker);
                     commandSystem.EnqueueAbility(worker, Abilities.STOP);
@@ -236,9 +235,14 @@ public class BuildSystem1
                 commandSystem.EnqueueAbility(worker, Abilities.HARVEST_GATHER, _refinery);
             }
         }
-        if (TryGetAvailableWorker(out worker) && worker.orders.Count > 0 && worker.orders[0].TargetUnitTag != 0)
         {
-            if (analysisSystem.unitDictionary.TryGetValue(worker.orders[0].TargetUnitTag, out var target) && DData.CommandCenters.Contains(target.type) &&
+
+        }
+        if (TryGetAvailableWorker(out worker))
+        {
+            if (worker.TryGetOrder(out var order) && order.TargetUnitTag != 0 &&
+                analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var target) &&
+                DData.CommandCenters.Contains(target.type) &&
                 target.assignedHarvesters > target.idealHarvesters * 1.5)
             {
                 workersAvailable.Remove(worker);
@@ -348,7 +352,7 @@ public class BuildSystem1
         for (int i = 0; i < 7; i++)
             if (placementImage.Query(position) == 0)
             {
-                position += random.NextVector2(-randomSize,randomSize);
+                position += random.NextVector2(-randomSize, randomSize);
             }
             else
             {

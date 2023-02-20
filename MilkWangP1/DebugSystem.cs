@@ -47,9 +47,9 @@ public class DebugSystem
         MessageCacheInit();
         _debugTextCount = 0;
         _debugSphereCount = 0;
-        var draw = debugRequest.Debug.Debug[0].Draw;
+        var draw = debugRequest.Debug.Debugs[0].Draw;
         draw.Spheres.Clear();
-        draw.Text.Clear();
+        draw.Texts.Clear();
         draw.Lines.Clear();
         draw.Boxes.Clear();
 
@@ -64,7 +64,7 @@ public class DebugSystem
         foreach (var tagUnit in tagUnits)
         {
             var position = tagUnit.Item1.position;
-            draw.Text.Add(new SC2APIProtocol.DebugText()
+            draw.Texts.Add(new SC2APIProtocol.DebugText()
             {
                 Size = 10,
                 Text = tagUnit.Item2,
@@ -75,7 +75,7 @@ public class DebugSystem
         {
             var position = tagPosition.Item1;
             float height = analysisSystem.terrainHeight.Query(position) / 8.0f - 16.0f;
-            draw.Text.Add(new SC2APIProtocol.DebugText()
+            draw.Texts.Add(new SC2APIProtocol.DebugText()
             {
                 Size = 10,
                 Text = tagPosition.Item2,
@@ -160,18 +160,18 @@ public class DebugSystem
         var draw = new SC2APIProtocol.DebugDraw();
         debugCommand.Draw = draw;
         debugRequest.Debug = new SC2APIProtocol.RequestDebug();
-        debugRequest.Debug.Debug.Add(debugCommand);
+        debugRequest.Debug.Debugs.Add(debugCommand);
     }
 
     void MessagePostProcess()
     {
-        var debugTexts = debugRequest.Debug.Debug[0].Draw.Text;
+        var debugTexts = debugRequest.Debug.Debugs[0].Draw.Texts;
         while (_debugTextCount < debugTexts.Count)
         {
             debugTexts.RemoveAt(debugTexts.Count - 1);
         }
 
-        var debugSpheres = debugRequest.Debug.Debug[0].Draw.Spheres;
+        var debugSpheres = debugRequest.Debug.Debugs[0].Draw.Spheres;
         while (_debugSphereCount < debugSpheres.Count)
         {
             debugSpheres.RemoveAt(debugSpheres.Count - 1);

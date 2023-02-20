@@ -1,5 +1,4 @@
-﻿using Google.Protobuf;
-using SC2APIProtocol;
+﻿using SC2APIProtocol;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -129,8 +128,8 @@ public class GameConnection
     public void SendMessage(Request request)
     {
         var sendBuf = ArrayPool<byte>.Shared.Rent(1024 * 1024);
-        var outStream = new CodedOutputStream(sendBuf);
-        request.WriteTo(outStream);
+        var outStream = new MemoryStream(sendBuf);
+        ProtoBuf.Serializer.Serialize(outStream, request);
         using (CancellationTokenSource cancellationSource = new CancellationTokenSource())
         {
             cancellationSource.CancelAfter(readWriteTimeout);
@@ -169,7 +168,8 @@ public class GameConnection
                 finished = result.EndOfMessage;
             }
         }
-        var response = Response.Parser.ParseFrom(receiveBuf, 0, currentPosition);
+        //var response = Response.Parser.ParseFrom(receiveBuf, 0, currentPosition);
+        var response = ProtoBuf.Serializer.Deserialize<Response>(new ReadOnlySpan<byte>(receiveBuf, 0, currentPosition));
         status = response.Status;
         ArrayPool<byte>.Shared.Return(receiveBuf);
         return response;
@@ -177,28 +177,32 @@ public class GameConnection
 
     public void NewGame(PlayerSetup opponent, string mapPath)
     {
-        var createGame = new RequestCreateGame();
-        createGame.Realtime = false;
-
         if (!File.Exists(mapPath))
         {
             throw new Exception("Unable to locate map: " + mapPath);
         }
 
-        createGame.LocalMap = new LocalMap();
-        createGame.LocalMap.MapPath = mapPath;
 
         var player1 = new PlayerSetup();
-        createGame.PlayerSetup.Add(player1);
         player1.Type = PlayerType.Participant;
 
-        createGame.PlayerSetup.Add(opponent);
+        var createGame = new RequestCreateGame();
+        createGame.Realtime = false;
+        createGame.LocalMap = new LocalMap
+        {
+            MapPath = mapPath
+        };
 
-        var request = new Request();
-        request.CreateGame = createGame;
+        createGame.PlayerSetups.Add(player1);
+        createGame.PlayerSetups.Add(opponent);
+
+        var request = new Request()
+        {
+            CreateGame = createGame,
+        };
         var response = Request(request);
 
-        if (response.CreateGame.Error != ResponseCreateGame.Types.Error.Unset)
+        if (response.CreateGame.ShouldSerializeErrorDetails())
         {
             throw new Exception(string.Format("Response error \ndetail:{0}", response.CreateGame.ErrorDetails));
         }

@@ -1,7 +1,5 @@
 ﻿using CommandLine;
 using MilkWangBase.Utility;
-using Newtonsoft.Json;
-using System.IO;
 
 namespace MilkWang1;
 
@@ -27,12 +25,9 @@ internal class Program
 
     static void Run(CLArgs clArgs)
     {
-        var botData = JsonConvert.DeserializeObject<BotData>(File.ReadAllText("BotData/terran.json"),
-            new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All });
         var controller = new BotController
         {
             CLArgs = clArgs,
-            botData = botData
         };
         controller.Initialize();
         while (!controller.exitProgram)

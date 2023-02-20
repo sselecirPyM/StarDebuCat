@@ -17,20 +17,20 @@ public class ActionList
     public void EnqueueChat(string message, bool broadcast = false)
     {
         var actionChat = new ActionChat();
-        actionChat.Channel = broadcast ? ActionChat.Types.Channel.Broadcast : ActionChat.Types.Channel.Team;
+        actionChat.channel = broadcast ? ActionChat.Channel.Broadcast : ActionChat.Channel.Team;
         actionChat.Message = message;
         actions.Add(new Action { ActionChat = actionChat });
     }
 
-    public void EnqueueAbility(IEnumerable<Unit> units, Abilities abilities)
+    public void EnqueueAbility(IReadOnlyList<Unit> units, Abilities abilities)
     {
         UnitsAction(Command(abilities), units);
     }
-    public void EnqueueAbility(IEnumerable<Unit> units, Abilities abilities, ulong target)
+    public void EnqueueAbility(IReadOnlyList<Unit> units, Abilities abilities, ulong target)
     {
         UnitsAction(Command(abilities, target), units);
     }
-    public void EnqueueAbility(IEnumerable<Unit> units, Abilities abilities, Vector2 target)
+    public void EnqueueAbility(IReadOnlyList<Unit> units, Abilities abilities, Vector2 target)
     {
         UnitsAction(Command(abilities, target), units);
     }
@@ -48,11 +48,14 @@ public class ActionList
         UnitsAction(Command(abilities, target), unit);
     }
 
-    public void UnitsAction(Action action, IEnumerable<Unit> units)
+    public void UnitsAction(Action action, IReadOnlyList<Unit> units)
     {
-        foreach (var unit in units)
-            action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
-        if (action.ActionRaw.UnitCommand.UnitTags.Count > 0)
+        ulong[] units1 = new ulong[units.Count];
+        for (int i = 0; i < units.Count; i++)
+            units1[i] = units[i].Tag;
+
+        action.ActionRaw.UnitCommand.UnitTags = units1;
+        if (action.ActionRaw.UnitCommand.UnitTags.Length > 0)
             actions.Add(action);
     }
 
@@ -60,7 +63,15 @@ public class ActionList
     {
         if (unit == null)
             return;
-        action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
+        //action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
+        action.ActionRaw.UnitCommand.UnitTags = new ulong[] { unit.Tag };
+        actions.Add(action);
+    }
+
+    public void UnitsAction(Action action, ulong unit)
+    {
+        //action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
+        action.ActionRaw.UnitCommand.UnitTags = new ulong[] { unit };
         actions.Add(action);
     }
 

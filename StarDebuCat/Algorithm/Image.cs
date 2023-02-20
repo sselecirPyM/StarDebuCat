@@ -11,7 +11,7 @@ public class Image
     public int BitsPerPixel;
     public Image(ImageData imageData)
     {
-        Data = imageData.Data.ToByteArray();
+        Data = imageData.Data;
         Width = imageData.Size.X;
         Height = imageData.Size.Y;
         BitsPerPixel = imageData.BitsPerPixel;

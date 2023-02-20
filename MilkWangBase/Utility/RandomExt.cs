@@ -28,6 +28,22 @@ public static class RandomExt
         return list[random.Next(0, list.Count)];
     }
 
+    public static bool TryGetRandom<T>(this List<T> list, Random random, out T result)
+    {
+        if (list.Count == 0)
+        {
+            result = default(T);
+            return false;
+        }
+        if (list.Count == 1)
+        {
+            result = list[0];
+            return true;
+        }
+        result = list[random.Next(0, list.Count)];
+        return true;
+    }
+
     public static Vector2 Nearest(this List<Vector2> list, Vector2 position)
     {
         Vector2 result = list[0];

@@ -8,12 +8,12 @@ using System.Numerics;
 
 namespace MilkWang1;
 
-public enum UnitBattleType
-{
-    Undefined = 0,
-    AttackMain,
-    ProtectArea,
-}
+//public enum UnitBattleType
+//{
+//    Undefined = 0,
+//    AttackMain,
+//    ProtectArea,
+//}
 public struct MicroState
 {
     public float inEnemyRangeFood;
@@ -35,7 +35,7 @@ public class BattleSystem1
 
     public BotData BotData;
 
-    public Dictionary<Unit, UnitBattleType> units = new();
+    public Dictionary<Unit, BattleUnit> units = new();
 
     [XFind("QuadTree", Alliance.Self)]
     public QuadTree<Unit> myUnits1;
@@ -52,12 +52,11 @@ public class BattleSystem1
     public Vector2 mainTarget;
     public Vector2 protectPosition;
 
-    public HashSet<Unit> esc = new();
+    HashSet<Unit> esc = new();
 
     Random random = new();
 
     List<Unit> attackArmy = new();
-    List<Unit> protectorArmy = new();
     void Update()
     {
 
@@ -67,24 +66,23 @@ public class BattleSystem1
         MicroOperate();
 
         attackArmy.Clear();
-        protectorArmy.Clear();
         foreach (var unit in units)
         {
             if (esc.Contains(unit.Key))
                 continue;
-            switch (unit.Value)
+            switch (unit.Value.battleType)
             {
                 case UnitBattleType.AttackMain:
                     attackArmy.Add(unit.Key);
                     break;
                 case UnitBattleType.ProtectArea:
-                    protectorArmy.Add(unit.Key);
+                    if (Vector2.Distance(unit.Value.protectPosition, unit.Value.unit.position) > 3)
+                        commandSystem.OptimiseCommand(unit.Key, Abilities.ATTACK, unit.Value.protectPosition);
                     break;
             }
         }
-
+        esc.Clear();
         commandSystem.EnqueueAbility(attackArmy, Abilities.ATTACK, mainTarget);
-        commandSystem.EnqueueAbility(protectorArmy, Abilities.ATTACK, protectPosition);
     }
 
     List<Unit> enemyNearby6 = new();

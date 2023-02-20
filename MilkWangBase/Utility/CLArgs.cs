@@ -20,4 +20,7 @@ public class CLArgs
     public Race ComputerRace { get; set; } = Race.Random;
     [Option('d', "ComputerDifficulty")]
     public Difficulty ComputerDifficulty { get; set; } = Difficulty.VeryHard;
+
+    [Option("OpponentId")]
+    public string OpponentId { get; set; }
 }

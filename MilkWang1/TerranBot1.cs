@@ -54,6 +54,15 @@ public class TerranBot1
 
     public BotData BotData;
 
+    int[] range = new int[]
+    {
+        0,
+        8064,
+        10572,
+        16128
+    };
+
+    int attackTimer = 0;
     void Update()
     {
 
@@ -64,12 +73,24 @@ public class TerranBot1
             EnemyFindInit();
 
         var s1 = BotData.buildCounts[0];
+        for (int i = range.Length - 1; i >= 0; i--)
+        {
+            if (analysisSystem.GameLoop > range[i])
+            {
+                s1 = BotData.buildCounts[i];
+                break;
+            }
+        }
+        //if (analysisSystem.GameLoop > 8064)
+        //    s1 = BotData.buildCounts[1];
+
+        buildSystem.requireUnitCount.Clear();
         foreach (var c in s1)
         {
             buildSystem.requireUnitCount[c.Key] = c.Value;
         }
-
-        buildSystem.requireUnitCount[UnitType.TERRAN_COMMANDCENTER] = (int)analysisSystem.GameLoop / 3360 - predicationSystem.GetPredictTotal(UnitType.TERRAN_ORBITALCOMMAND);
+        buildSystem.requireUnitCount.TryGetValue(UnitType.TERRAN_COMMANDCENTER, out var commandCenterCount);
+        buildSystem.requireUnitCount[UnitType.TERRAN_COMMANDCENTER] = commandCenterCount - predicationSystem.GetPredictTotal(UnitType.TERRAN_ORBITALCOMMAND);
         var unitDictionary = analysisSystem.unitDictionary;
 
         if (battleSystem.mainTarget == Vector2.Zero)
@@ -80,14 +101,37 @@ public class TerranBot1
 
         bool changeTarget = friendNearbys.Count > 0;
 
+        if (analysisSystem.GameLoop > 13440)
+        {
+            attackTimer++;
+        }
+        if (attackTimer > 1344)
+        {
+            attackTimer = 0;
+            changeTarget = true;
+        }
         if (changeTarget)
         {
-            var randomUnit = friendNearbys.GetRandom(random);
-            if (!keepers.Any(u => Vector2.Distance(u.position, battleSystem.mainTarget) < 7))
-                keepers.Add(randomUnit);
+            if (friendNearbys.TryGetRandom(random, out var randomUnit))
+            {
+                if (!keepers.Any(u => Vector2.Distance(u.position, battleSystem.mainTarget) < 7))
+                {
+                    keepers.Add(randomUnit);
+                    if (!battleSystem.units.TryGetValue(randomUnit, out var bu))
+                    {
+                        battleSystem.units[randomUnit] = bu = new BattleUnit(randomUnit);
+                    }
+                    bu.battleType = UnitBattleType.ProtectArea;
+                    bu.protectPosition = battleSystem.mainTarget;
+                }
+                else
+                {
+
+                }
+            }
             else
             {
-
+                Console.WriteLine("Lost target.");
             }
 
             battleSystem.mainTarget = FindEnemy();
@@ -102,18 +146,30 @@ public class TerranBot1
         int attackCount = 20;
         foreach (var army in armies)
         {
+            if (!battleSystem.units.TryGetValue(army, out var unit))
+            {
+                battleSystem.units[army] = unit = new BattleUnit(army);
+            }
+            if (keepers.Contains(army))
+                continue;
+
             if (armies.Count > attackCount)
             {
-                battleSystem.units[army] = UnitBattleType.AttackMain;
+                unit.battleType = UnitBattleType.AttackMain;
             }
             else if (Vector2.Distance(battleSystem.protectPosition, army.position) > 30)
             {
-                battleSystem.units[army] = UnitBattleType.Undefined;
+                unit.battleType = UnitBattleType.Undefined;
+            }
+            else
+            {
+                unit.battleType = UnitBattleType.ProtectArea;
+                unit.protectPosition = battleSystem.protectPosition;
             }
         }
-        battleSystem.esc.Clear();
-        foreach (var keeper in keepers)
-            battleSystem.esc.Add(keeper);
+        //battleSystem.esc.Clear();
+        //foreach (var keeper in keepers)
+        //    battleSystem.esc.Add(keeper);
     }
 
     Vector2 FindEnemy()
@@ -128,11 +184,11 @@ public class TerranBot1
         foreach (var enemy in enemyUnits)
         {
             Vector2 target1 = enemy.position;
-            if ((!enemy.isFlying || !DData.Zerg.Contains(enemy.type)) && analysisSystem.pathing.Query(target1) != 0)
+            if ((!enemy.isFlying || !DData.Zerg.Contains(enemy.type)))
                 enemyNearbys.Add(enemy);
         }
 
-        if (enemyNearbys.Count > 0)
+        if (enemyNearbys.Count > 0 && random.Next(0, 5) > 0)
         {
             var enemy = enemyNearbys.GetRandom(random);
             target = enemy.position;

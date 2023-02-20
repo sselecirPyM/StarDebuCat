@@ -34,7 +34,7 @@ public class InputSystem1
     #endregion
     public void Update()
     {
-        if (!readyToPlay && status == Status.Unset)
+        if (!readyToPlay && status == 0)
         {
             StartGame();
             gameData = gameConnection.RequestGameData();
@@ -46,7 +46,7 @@ public class InputSystem1
         status = gameConnection.status;
         if (status == Status.Ended || status == Status.Quit)
         {
-            foreach (var result in observation.PlayerResult)
+            foreach (var result in observation.PlayerResults)
             {
                 if (result.PlayerId == playerId)
                     Console.WriteLine("Result: {0}", result.Result);
@@ -107,9 +107,9 @@ public class InputSystem1
 
         var response = gameConnection.Request(request);
         var responseJoinGame = response.JoinGame;
-        if (responseJoinGame.Error != ResponseJoinGame.Types.Error.Unset)
+        if (responseJoinGame.ShouldSerializeerror())
         {
-            throw new Exception(string.Format("{0} {1}", responseJoinGame.Error.ToString(), responseJoinGame.ErrorDetails));
+            throw new Exception(string.Format("{0} {1}", responseJoinGame.error.ToString(), responseJoinGame.ErrorDetails));
         }
 
         playerId = (int)responseJoinGame.PlayerId;
@@ -132,7 +132,7 @@ public class InputSystem1
         var response = gameConnection.Request(request);
         var responseJoinGame = response.JoinGame;
 
-        if (responseJoinGame.Error != ResponseJoinGame.Types.Error.Unset)
+        if (responseJoinGame.ShouldSerializeerror())
         {
             throw new Exception(string.Format("Response error \ndetail:{0}", response.JoinGame.ErrorDetails));
         }

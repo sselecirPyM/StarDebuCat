@@ -151,6 +151,7 @@ public class PredicationSystem
                     var predicatedUnitType = GetAlias((UnitType)buildUnit.UnitId);
                     predicatedUnitTypes.Increment(predicatedUnitType);
                     float timeRemain = buildUnit.BuildTime * (1 - order.Progress);
+                    //if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None &&
                     if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None &&
                         buildUnit.FoodRequired > 0)
                     {

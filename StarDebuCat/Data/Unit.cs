@@ -81,6 +81,20 @@ public class Unit
         //tracking = true;
     }
 
+    public bool TryGetOrder(out SC2APIProtocol.UnitOrder order)
+    {
+        if (orders.Count > 0)
+        {
+            order = orders[0];
+            return true;
+        }
+        else
+        {
+            order = null;
+            return false;
+        }
+    }
+
     public override string ToString()
     {
         return string.Format("{0}|{1}", type, owner);

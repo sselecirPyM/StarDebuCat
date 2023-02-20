@@ -118,10 +118,6 @@ public class AnalysisSystem1
         {
             if (upgrade.AbilityId != 0)
                 abilToUpgrade[(Abilities)upgrade.AbilityId] = upgrade;
-            if (((Abilities)upgrade.AbilityId) == Abilities.RESEARCH_CONCUSSIVESHELLS)
-            {
-
-            }
         }
         buffDatas = new();
         buffDatas.AddRange(inputSystem.gameData.Buffs);
@@ -219,7 +215,7 @@ public class AnalysisSystem1
             UsedMineralsArmy = scoreDetails.UsedMinerals.Army,
             UsedVespeneArmy = scoreDetails.UsedVespene.Army,
             FoodUsedArmy = scoreDetails.FoodUsed.Army,
-            
+
 
             Minerals = (int)playerCommon.Minerals,
             Vespene = (int)playerCommon.Vespene,
@@ -245,10 +241,11 @@ public class AnalysisSystem1
         GameLoop = observation.GameLoop;
 
         hasUpgrade.Clear();
-        foreach (var up in observation.RawData.Player.UpgradeIds)
-        {
-            hasUpgrade.Add((UpgradeType)up);
-        }
+        if (observation.RawData.Player.UpgradeIds != null)
+            foreach (var up in observation.RawData.Player.UpgradeIds)
+            {
+                hasUpgrade.Add((UpgradeType)up);
+            }
     }
 
     HashSet<ulong> previousUnit = new();

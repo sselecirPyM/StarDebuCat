@@ -1,8 +1,9 @@
-﻿using MilkWangBase;
-using MilkWangBase.Core;
+﻿using MilkWangBase.Core;
 using MilkWangBase.Utility;
+using Newtonsoft.Json;
 using StarDebuCat;
 using System;
+using System.IO;
 
 namespace MilkWang1;
 
@@ -11,7 +12,6 @@ public class BotController : IDisposable
     public GameConnection gameConnection;
 
     public CLArgs CLArgs;
-    public BotData botData;
     public BotSubComtroller subComtroller;
     Fusion fusion;
 
@@ -19,6 +19,8 @@ public class BotController : IDisposable
 
     public void Initialize()
     {
+        var botData = JsonConvert.DeserializeObject<BotData>(File.ReadAllText("BotData/terran.json"),
+            new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All });
         gameConnection = new GameConnection();
         subComtroller = new BotSubComtroller();
         var inputSystem = subComtroller.inputSystem = new InputSystem1();
@@ -30,7 +32,7 @@ public class BotController : IDisposable
         if (CLArgs.Map != null)
         {
             StarDebuCat.Utility.SC2GameHelp.LaunchSC2(CLArgs.StartPort, out var maps);
-            inputSystem.map = maps + "/" + CLArgs.Map;
+            inputSystem.map = maps + "\\" + CLArgs.Map;
             inputSystem.ladderGame = false;
             inputSystem.ComputerDifficulty = CLArgs.ComputerDifficulty;
             inputSystem.ComputerRace = CLArgs.ComputerRace;

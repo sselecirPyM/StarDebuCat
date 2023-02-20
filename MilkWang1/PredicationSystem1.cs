@@ -139,9 +139,8 @@ public class PredicationSystem1
 
         foreach (var builder in myUnits)
         {
-            if (builder.buildProgress == 1 && builder.orders.Count > 0)
+            if (builder.buildProgress == 1 && builder.TryGetOrder(out var order))
             {
-                var order = builder.orders[0];
                 if (analysisSystem.abilToUnitTypeData.TryGetValue((Abilities)order.AbilityId, out var buildUnit))
                 {
                     var predicatedUnitType = GetAlias((UnitType)buildUnit.UnitId);
