@@ -36,7 +36,7 @@ public class AnalysisSystem1
 
     public HashSet<UpgradeType> hasUpgrade = new();
 
-    public FrameResource currentFrameResource;
+    public FrameResource currentFrameResource = new();
 
     public List<FrameResource> historyFrameResource = new();
     public readonly int sampleRate = 32;
@@ -194,6 +194,8 @@ public class AnalysisSystem1
         var scoreDetails = observation.Score.ScoreDetails;
 
         var playerCommon = observation.PlayerCommon;
+        var previousFrameResource = currentFrameResource;
+
         currentFrameResource = new FrameResource()
         {
             CollectionRateMinerals = scoreDetails.CollectionRateMinerals,
@@ -226,6 +228,12 @@ public class AnalysisSystem1
             FoodUsed = (int)playerCommon.FoodUsed,
             WarpGateCount = (int)playerCommon.WarpGateCount,
             IdleWorkerCount = (int)playerCommon.IdleWorkerCount,
+
+            MineralKill = previousFrameResource.MineralKill,
+            VespeneKill = previousFrameResource.VespeneKill,
+            MineralLost = previousFrameResource.MineralLost,
+            VespeneLost = previousFrameResource.VespeneLost,
+
             GameLoop = (int)observation.GameLoop,
         };
         if (currentSample == 0)
@@ -282,14 +290,7 @@ public class AnalysisSystem1
 
         units.Clear();
         units.AddRange(unitDictionary.Values);
-        deadUnits1.Clear();
-        if (rawData.Event != null)
-            foreach (var unit in rawData.Event.DeadUnits)
-                deadUnits1.Add(unit);
-        deadUnits.Clear();
-        foreach (var deadUnit in deadUnits1)
-            if (exitSightUnit.TryGetValue(deadUnit, out var unit))
-                deadUnits.Add(unit);
+        CountingDeadUnits();
 
 
         powerSources.Clear();
@@ -312,6 +313,33 @@ public class AnalysisSystem1
 
         visable = new(rawData.MapState.Visibility);
 
+    }
+
+    void CountingDeadUnits()
+    {
+        var rawData = inputSystem.observation.Observation.RawData;
+        deadUnits1.Clear();
+        if (rawData.Event != null)
+            foreach (var unit in rawData.Event.DeadUnits)
+                deadUnits1.Add(unit);
+        deadUnits.Clear();
+        foreach (var deadUnit in deadUnits1)
+            if (exitSightUnit.TryGetValue(deadUnit, out var unit))
+                deadUnits.Add(unit);
+        foreach (var unit in deadUnits)
+        {
+            var unitTypeData = GetUnitTypeData(unit);
+            if (unit.owner == playerId)
+            {
+                currentFrameResource.MineralLost += (int)unitTypeData.MineralCost;
+                currentFrameResource.VespeneLost += (int)unitTypeData.VespeneCost;
+            }
+            else if (unit.alliance == Alliance.Enemy)
+            {
+                currentFrameResource.MineralKill += (int)unitTypeData.MineralCost;
+                currentFrameResource.VespeneKill += (int)unitTypeData.VespeneCost;
+            }
+        }
     }
 
     #region CollectUnits

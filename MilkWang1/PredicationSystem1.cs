@@ -25,15 +25,29 @@ public class PredicationSystem1
     public HashSet<UpgradeType> canUpgrades = new();
     public HashSet<UpgradeType> predicatedUpgrades = new();
 
+    public List<(UnitType, float)> vBuildNotCompleted = new();
+
     public float foodPrediction20s;
+
+    SC2Resource predictResource = new();
+
+    public GameData GameData;
+
+    Dictionary<UnitType, int> buildCompleteFood = new();
+
+    bool initialized = false;
 
     public void Update()
     {
+        if (!initialized)
+            Initialize1();
+
         foodPrediction20s = 0;
         buildCompletedUnitTypes.Clear();
         buildNotCompletedUnitTypes.Clear();
         buildNotCompletedUnits.Clear();
         predicatedUnitTypes.Clear();
+        vBuildNotCompleted.Clear();
         foreach (var unit in myUnits)
         {
             UnitType unitType = GetAlias(unit.type);
@@ -47,45 +61,59 @@ public class PredicationSystem1
             {
                 buildNotCompletedUnitTypes.Increment(unitType);
                 buildNotCompletedUnits.Add(unit);
-                if (unitTypeData.Race != SC2APIProtocol.Race.Terran)
-                {
-                    if (timeRemain < 30 * 22.4f)
-                        foodPrediction20s += unitTypeData.FoodProvided;
-                    predicatedUnitTypes.Increment(unitType);
-                }
             }
         }
         var frameResource = analysisSystem.currentFrameResource;
         var history = analysisSystem.historyFrameResource;
+        var predictFrame = FrameResource.Interpolate(history[Math.Max(history.Count - 3, 0)], history[^1], frameResource.GameLoop + 448);
 
-        var predictFrame = FrameResource.Interpolate(history[Math.Max(history.Count - 3, 0)], history[history.Count - 1], frameResource.GameLoop + 448);
-        float mineralPredict = (predictFrame.CollectedMinerals - frameResource.SpentMinerals) * 1.25f + 50;
-        float vespinePredict = (predictFrame.CollectedVespene - frameResource.SpentVespene) * 1.25f;
+        predictResource.mineral = (int)((predictFrame.CollectedMinerals - frameResource.SpentMinerals) * 1.25f + 50);
+        predictResource.vespene = (int)((predictFrame.CollectedVespene - frameResource.SpentVespene) * 1.25f);
 
         foreach (var unit in buildNotCompletedUnits)
         {
             var typeData = analysisSystem.GetUnitTypeData(unit.type);
             float timeRemain = typeData.BuildTime * (1 - unit.buildProgress);
-            if (timeRemain < 20 * 22.4f)
+            if (GameData.selfBuild.Contains(unit.type))
             {
-                switch (unit.type)
-                {
-                    case UnitType.TERRAN_BARRACKS:
-                        foodPrediction20s -= 1;
-                        break;
-                    case UnitType.TERRAN_STARPORT:
-                    case UnitType.TERRAN_FACTORY:
-                    case UnitType.PROTOSS_GATEWAY:
-                        foodPrediction20s -= 2;
-                        break;
-                    case UnitType.PROTOSS_STARGATE:
-                    case UnitType.PROTOSS_ROBOTICSBAY:
-                        foodPrediction20s -= 3;
-                        break;
-                    case UnitType.ZERG_SPAWNINGPOOL:
-                        foodPrediction20s -= 5;
-                        break;
-                }
+                vBuildNotCompleted.Add((unit.type, timeRemain));
+            }
+        }
+
+        foreach (var builder in myUnits)
+        {
+            if (builder.buildProgress < 1)
+                continue;
+            if (!builder.TryGetOrder(out var order))
+                continue;
+            Abilities abilities = (Abilities)order.AbilityId;
+            if (analysisSystem.abilToUnitTypeData.TryGetValue(abilities, out var buildUnit))
+            {
+                var predicatedUnitType = GetAlias((UnitType)buildUnit.UnitId);
+                predicatedUnitTypes.Increment(predicatedUnitType);
+                float timeRemain = buildUnit.BuildTime * (1 - order.Progress);
+                vBuildNotCompleted.Add((predicatedUnitType, timeRemain));
+            }
+            else if (GameData.morphToUnit.TryGetValue(abilities, out var unitType))
+            {
+                predicatedUnitTypes.Increment(unitType);
+            }
+            if (analysisSystem.abilToUpgrade.TryGetValue(abilities, out var upgrade))
+            {
+                var up1 = (UpgradeType)upgrade.UpgradeId;
+                predicatedUpgrades.Add(up1);
+                canUpgrades.Remove(up1);
+            }
+        }
+
+        foreach (var pair in vBuildNotCompleted)
+        {
+            if (buildCompleteFood.TryGetValue(pair.Item1, out var foodCost))
+            {
+                if (pair.Item2 < 20 * 22.4f && foodCost < 0)
+                    foodPrediction20s += foodCost;
+                if (pair.Item2 < 30 * 22.4f && foodCost > 0)
+                    foodPrediction20s += foodCost;
             }
         }
 
@@ -101,6 +129,7 @@ public class PredicationSystem1
                     if (GetBuildCompletedCount(req1) == 0)
                     {
                         canBuild = false;
+                        break;
                     }
                 }
             if (item.needLab)
@@ -137,47 +166,23 @@ public class PredicationSystem1
             }
         }
 
-        foreach (var builder in myUnits)
-        {
-            if (builder.buildProgress == 1 && builder.TryGetOrder(out var order))
-            {
-                if (analysisSystem.abilToUnitTypeData.TryGetValue((Abilities)order.AbilityId, out var buildUnit))
-                {
-                    var predicatedUnitType = GetAlias((UnitType)buildUnit.UnitId);
-                    predicatedUnitTypes.Increment(predicatedUnitType);
-                    float timeRemain = buildUnit.BuildTime * (1 - order.Progress);
-                    if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None &&
-                        buildUnit.FoodRequired > 0)
-                    {
-                        if (timeRemain < 20 * 22.4f)
-                            foodPrediction20s -= buildUnit.FoodRequired;
-                        timeRemain += buildUnit.BuildTime;
-                        if (timeRemain < 20 * 22.4f && (mineralPredict > 0 || buildUnit.MineralCost == 0) &&
-                            (vespinePredict > 0 || buildUnit.VespeneCost == 0))
-                        {
-                            foodPrediction20s -= buildUnit.FoodRequired;
-                            mineralPredict -= buildUnit.MineralCost;
-                            vespinePredict -= buildUnit.VespeneCost;
-                        }
-                    }
-                    if (buildUnit.FoodProvided > 0 && timeRemain < 30 * 22.4f)
-                    {
-                        foodPrediction20s += buildUnit.FoodProvided;
-                    }
-                }
-                else if (analysisSystem.abilToUpgrade.TryGetValue((Abilities)order.AbilityId, out var upgrade))
-                {
-                    var up1 = (UpgradeType)upgrade.UpgradeId;
-                    predicatedUpgrades.Add(up1);
-                    canUpgrades.Remove(up1);
-                }
-                else if ((Abilities)order.AbilityId == Abilities.MORPH_ORBITALCOMMAND)
-                {
-                    predicatedUnitTypes.Increment(UnitType.TERRAN_ORBITALCOMMAND);
-                }
-            }
-        }
         canUpgrades.ExceptWith(analysisSystem.hasUpgrade);
+    }
+
+    void Initialize1()
+    {
+        initialized = true;
+        foreach (var pair in analysisSystem.abilToUnitTypeData)
+        {
+            int foodCost = (int)pair.Value.FoodRequired;
+            int foodPrivede = (int)pair.Value.FoodProvided;
+            if (foodCost > 0)
+                buildCompleteFood[(UnitType)pair.Value.UnitId] = -foodCost;
+            if (foodPrivede > 0)
+                buildCompleteFood[(UnitType)pair.Value.UnitId] = foodPrivede;
+        }
+        foreach (var pair in GameData.buildCompleteFoodCost)
+            buildCompleteFood[pair.Key] = -pair.Value;
     }
 
     public int GetBuildCompletedCount(UnitType unitType)

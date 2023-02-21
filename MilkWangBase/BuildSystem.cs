@@ -84,7 +84,7 @@ public class BuildSystem
 
     List<Unit> nearByMineral = new();
     List<Unit> workersAvailable = new();
-    List<Unit> vespineCanBuild = new();
+    List<Unit> vespeneCanBuild = new();
     HashSet<Unit> workerBuildTargets = new();
 
     void Update()
@@ -139,12 +139,12 @@ public class BuildSystem
             }
         }
 
-        vespineCanBuild.Clear();
+        vespeneCanBuild.Clear();
         foreach (var commandCenter in commandCenters)
         {
             var position = commandCenter.position;
             minerals1.ClearSearch(nearByMineral, position, 10);
-            geysers1.Search(vespineCanBuild, position, 12);
+            geysers1.Search(vespeneCanBuild, position, 12);
 
             var unitTypeData = analysisSystem.GetUnitTypeData(commandCenter.type);
             var race = unitTypeData.Race;
@@ -213,17 +213,17 @@ public class BuildSystem
             }
         }
 
-        vespineCanBuild.RemoveAll(u => workerBuildTargets.Contains(u) || refinery1.HitTest(u.position, 1.0f));
+        vespeneCanBuild.RemoveAll(u => workerBuildTargets.Contains(u) || refinery1.HitTest(u.position, 1.0f));
 
-        if (vespineCanBuild.Count > 0 && workersAvailable.Count > 0)
+        if (vespeneCanBuild.Count > 0 && workersAvailable.Count > 0)
         {
-            var vespine = vespineCanBuild.GetRandom(random);
+            var vespene = vespeneCanBuild.GetRandom(random);
             var worker = workersAvailable.GetRandom(random);
             var refineryType = GetRefineryType(worker.type);
             if (NeedBuildUnit(refineryType))
             {
                 workersAvailable.Remove(worker);
-                commandSystem.EnqueueBuild(worker, refineryType, vespine);
+                commandSystem.EnqueueBuild(worker, refineryType, vespene);
             }
         }
         if (workersAvailable.Count > 0 && refinery.Count > 0)

@@ -1,5 +1,4 @@
-﻿using MilkWangBase;
-using MilkWangBase.Attributes;
+﻿using MilkWangBase.Attributes;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -14,7 +13,7 @@ public class TerranBot1
 {
     AnalysisSystem1 analysisSystem;
     PredicationSystem1 predicationSystem;
-    MarkerSystem markerSystem;
+    MarkerSystem1 markerSystem;
     BattleSystem1 battleSystem;
     BuildSystem1 buildSystem;
 
@@ -54,10 +53,12 @@ public class TerranBot1
 
     public BotData BotData;
 
+    int attackCount = 20;
+
     int[] range = new int[]
     {
         0,
-        8064,
+        6720,
         10572,
         16128
     };
@@ -72,17 +73,18 @@ public class TerranBot1
         if (!enemyFindInit && buildSystem.resourcePoints != null)
             EnemyFindInit();
 
+        var frame = analysisSystem.currentFrameResource;
+        int gameLoop = frame.GameLoop;
+
         var s1 = BotData.buildCounts[0];
         for (int i = range.Length - 1; i >= 0; i--)
         {
-            if (analysisSystem.GameLoop > range[i])
+            if (gameLoop > range[i])
             {
                 s1 = BotData.buildCounts[i];
                 break;
             }
         }
-        //if (analysisSystem.GameLoop > 8064)
-        //    s1 = BotData.buildCounts[1];
 
         buildSystem.requireUnitCount.Clear();
         foreach (var c in s1)
@@ -101,7 +103,9 @@ public class TerranBot1
 
         bool changeTarget = friendNearbys.Count > 0;
 
-        if (analysisSystem.GameLoop > 13440)
+        attackCount = 20 + Math.Min(Math.Max(frame.MineralLost + frame.VespeneLost - frame.MineralKill - frame.VespeneKill, 0) / 100, 30);
+
+        if (gameLoop > 13440)
         {
             attackTimer++;
         }
@@ -143,7 +147,6 @@ public class TerranBot1
             markerSystem.AddMark(deadUnit.position, "Dead", 30);
         }
 
-        int attackCount = 20;
         foreach (var army in armies)
         {
             if (!battleSystem.units.TryGetValue(army, out var unit))
@@ -167,9 +170,6 @@ public class TerranBot1
                 unit.protectPosition = battleSystem.protectPosition;
             }
         }
-        //battleSystem.esc.Clear();
-        //foreach (var keeper in keepers)
-        //    battleSystem.esc.Add(keeper);
     }
 
     Vector2 FindEnemy()

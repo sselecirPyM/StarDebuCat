@@ -89,8 +89,8 @@ public class BattleSystem
             }
         }
 
-        commandSystem.EnqueueAbility(attackArmy, Abilities.ATTACK, mainTarget);
-        commandSystem.EnqueueAbility(protectorArmy, Abilities.ATTACK, protectPosition);
+        commandSystem.EnqueueAbility(attackArmy, Abilities.ATTACK_ATTACK, mainTarget);
+        commandSystem.EnqueueAbility(protectorArmy, Abilities.ATTACK_ATTACK, protectPosition);
     }
 
     List<Unit> enemyNearby6 = new();
@@ -223,7 +223,7 @@ public class BattleSystem
                         if (push)
                             commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, 0.2f, Math.Min(2.0f, fireRange)));
                         else if (enemyMaxRange + 0.5f >= fireRange)
-                            commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
+                            commandSystem.OptimiseCommand(unit, Abilities.ATTACK_ATTACK, enemy.position);
                         else
                             commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, enemyMaxRange + 1.5f)));
                     }
@@ -235,12 +235,12 @@ public class BattleSystem
                 }
                 else if (unit.weaponCooldown <= 1 && microState1.minLifeEnemy != null)
                 {
-                    commandSystem.EnqueueAbility(unit, Abilities.ATTACK, microState1.minLifeEnemy);
+                    commandSystem.EnqueueAbility(unit, Abilities.ATTACK_ATTACK, microState1.minLifeEnemy);
                     esc.Add(unit);
                 }
                 else if (forward)
                 {
-                    commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
+                    commandSystem.OptimiseCommand(unit, Abilities.ATTACK_ATTACK, enemy.position);
                     esc.Add(unit);
                 }
                 else

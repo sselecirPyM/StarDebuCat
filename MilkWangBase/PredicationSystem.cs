@@ -64,7 +64,7 @@ public class PredicationSystem
 
         var predictFrame = FrameResource.Interpolate(history[Math.Max(history.Count - 3, 0)], history[history.Count - 1], frameResource.GameLoop + 448);
         float mineralPredict = (predictFrame.CollectedMinerals - frameResource.SpentMinerals) * 1.25f + 50;
-        float vespinePredict = (predictFrame.CollectedVespene - frameResource.SpentVespene) * 1.25f;
+        float vespenePredict = (predictFrame.CollectedVespene - frameResource.SpentVespene) * 1.25f;
 
         foreach (var unit in buildNotCompletedUnits)
         {
@@ -143,45 +143,46 @@ public class PredicationSystem
 
         foreach (var builder in myUnits)
         {
-            if (builder.buildProgress == 1 && builder.orders.Count > 0)
+            if (builder.buildProgress < 1)
+                continue;
+            if (!builder.TryGetOrder(out var order))
+                continue;
+            Abilities abilities = (Abilities)order.AbilityId;
+            if (analysisSystem.abilToUnitTypeData.TryGetValue(abilities, out var buildUnit))
             {
-                var order = builder.orders[0];
-                if (analysisSystem.abilToUnitTypeData.TryGetValue((Abilities)order.AbilityId, out var buildUnit))
+                var predicatedUnitType = GetAlias((UnitType)buildUnit.UnitId);
+                predicatedUnitTypes.Increment(predicatedUnitType);
+                float timeRemain = buildUnit.BuildTime * (1 - order.Progress);
+                if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None &&
+                    buildUnit.FoodRequired > 0)
                 {
-                    var predicatedUnitType = GetAlias((UnitType)buildUnit.UnitId);
-                    predicatedUnitTypes.Increment(predicatedUnitType);
-                    float timeRemain = buildUnit.BuildTime * (1 - order.Progress);
-                    //if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None &&
-                    if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None &&
-                        buildUnit.FoodRequired > 0)
+                    if (timeRemain < 20 * 22.4f)
+                        foodPrediction20s -= buildUnit.FoodRequired;
+                    timeRemain += buildUnit.BuildTime;
+                    if (timeRemain < 20 * 22.4f && (mineralPredict > 0 || buildUnit.MineralCost == 0) &&
+                        (vespenePredict > 0 || buildUnit.VespeneCost == 0))
                     {
-                        if (timeRemain < 20 * 22.4f)
-                            foodPrediction20s -= buildUnit.FoodRequired;
-                        timeRemain += buildUnit.BuildTime;
-                        if (timeRemain < 20 * 22.4f && (mineralPredict > 0 || buildUnit.MineralCost == 0) &&
-                            (vespinePredict > 0 || buildUnit.VespeneCost == 0))
-                        {
-                            foodPrediction20s -= buildUnit.FoodRequired;
-                            mineralPredict -= buildUnit.MineralCost;
-                            vespinePredict -= buildUnit.VespeneCost;
-                        }
-                    }
-                    if (buildUnit.FoodProvided > 0 && timeRemain < 30 * 22.4f)
-                    {
-                        foodPrediction20s += buildUnit.FoodProvided;
+                        foodPrediction20s -= buildUnit.FoodRequired;
+                        mineralPredict -= buildUnit.MineralCost;
+                        vespenePredict -= buildUnit.VespeneCost;
                     }
                 }
-                else if (analysisSystem.abilToUpgrade.TryGetValue((Abilities)order.AbilityId, out var upgrade))
+                if (buildUnit.FoodProvided > 0 && timeRemain < 30 * 22.4f)
                 {
-                    var up1 = (UpgradeType)upgrade.UpgradeId;
-                    predicatedUpgrades.Add(up1);
-                    canUpgrades.Remove(up1);
-                }
-                else if ((Abilities)order.AbilityId == Abilities.MORPH_ORBITALCOMMAND)
-                {
-                    predicatedUnitTypes.Increment(UnitType.TERRAN_ORBITALCOMMAND);
+                    foodPrediction20s += buildUnit.FoodProvided;
                 }
             }
+            else if (analysisSystem.abilToUpgrade.TryGetValue(abilities, out var upgrade))
+            {
+                var up1 = (UpgradeType)upgrade.UpgradeId;
+                predicatedUpgrades.Add(up1);
+                canUpgrades.Remove(up1);
+            }
+            else if (abilities == Abilities.MORPH_ORBITALCOMMAND)
+            {
+                predicatedUnitTypes.Increment(UnitType.TERRAN_ORBITALCOMMAND);
+            }
+
         }
         canUpgrades.ExceptWith(analysisSystem.hasUpgrade);
     }

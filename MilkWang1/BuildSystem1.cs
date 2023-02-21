@@ -74,7 +74,7 @@ public class BuildSystem1
 
     List<Unit> nearByMineral = new();
     List<Unit> workersAvailable = new();
-    List<Unit> vespineCanBuild = new();
+    List<Unit> vespeneCanBuild = new();
     HashSet<Unit> workerBuildTargets = new();
 
     UnitType[] idleUnitTypes;
@@ -93,7 +93,7 @@ public class BuildSystem1
         var frameResource = analysisSystem.currentFrameResource;
 
         resourceRemain.mineral = frameResource.Minerals;
-        resourceRemain.vespine = frameResource.Vespene;
+        resourceRemain.vespene = frameResource.Vespene;
         resourceRemain.food = frameResource.FoodCap - frameResource.FoodUsed;
 
         workersAvailable.Clear();
@@ -132,24 +132,22 @@ public class BuildSystem1
             }
         }
 
-        vespineCanBuild.Clear();
+        vespeneCanBuild.Clear();
         foreach (var commandCenter in commandCenters)
-            geysers1.Search(vespineCanBuild, commandCenter.position, 12);
+            geysers1.Search(vespeneCanBuild, commandCenter.position, 12);
 
         foreach (var commandCenter in commandCenters)
         {
             var position = commandCenter.position;
             minerals1.ClearSearch(nearByMineral, position, 10);
-
-            var unitTypeData = analysisSystem.GetUnitTypeData(commandCenter.type);
-            var race = unitTypeData.Race;
             UnitType workerType = BotData.workerType;
 
             if (commandCenter.orders.Count == 0)
             {
-                if (commandCenter.type == UnitType.TERRAN_ORBITALCOMMAND && commandCenter.energy >= 50 && nearByMineral.Count > 0 && NeedBuildUnit(UnitType.TERRAN_MULE))
+                if (commandCenter.type == UnitType.TERRAN_ORBITALCOMMAND && commandCenter.energy >= 50 &&
+                    nearByMineral.TryGetRandom(random, out var mineral1) && NeedBuildUnit(UnitType.TERRAN_MULE))
                 {
-                    commandSystem.EnqueueAbility(commandCenter, Abilities.EFFECT_CALLDOWNMULE, nearByMineral.GetRandom(random));
+                    commandSystem.EnqueueAbility(commandCenter, Abilities.EFFECT_CALLDOWNMULE, mineral1);
                 }
                 else if (commandCenter.type == UnitType.TERRAN_COMMANDCENTER && NeedBuildUnit(UnitType.TERRAN_ORBITALCOMMAND))
                 {
@@ -185,13 +183,14 @@ public class BuildSystem1
                         break;
                     }
                 }
-                if (canBuild)
+                if (canBuild && Build(worker, commandCenter, point))
                 {
-                    if (!Build(worker, commandCenter, point))
-                        resourceRemain.mineral -= (int)analysisSystem.GetUnitTypeData(commandCenter).MineralCost;
+
                 }
                 else
+                {
                     resourceRemain.mineral -= (int)analysisSystem.GetUnitTypeData(commandCenter).MineralCost;
+                }
             }
         }
 
@@ -206,23 +205,24 @@ public class BuildSystem1
             }
         }
 
-        vespineCanBuild.RemoveAll(u => workerBuildTargets.Contains(u) || refinery1.HitTest(u.position, 1.0f));
+        vespeneCanBuild.RemoveAll(u => workerBuildTargets.Contains(u) || refinery1.HitTest(u.position, 1.0f));
 
-        if (vespineCanBuild.Count > 0 && TryGetAvailableWorker(out worker))
+        if (vespeneCanBuild.Count > 0 && TryGetAvailableWorker(out worker))
         {
-            var vespine = vespineCanBuild.GetRandom(random);
+            var vespene = vespeneCanBuild.GetRandom(random);
             var refineryType = GetRefineryType(worker.type);
             if (NeedBuildUnit(refineryType))
             {
                 workersAvailable.Remove(worker);
-                commandSystem.EnqueueBuild(worker, refineryType, vespine);
+                commandSystem.EnqueueBuild(worker, refineryType, vespene);
             }
         }
         if (workersAvailable.Count > 0 && refinery.Count > 0 && TryGetAvailableWorker(out worker))
         {
             if (worker.TryGetOrder(out var order) && order.TargetUnitTag != 0)
             {
-                if (analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var target) && DData.Refinery.Contains(target.type) && (target.assignedHarvesters > 3 || target.buildProgress != 1))
+                if (analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var target) && DData.Refinery.Contains(target.type) &&
+                    (target.assignedHarvesters > 3 || target.buildProgress != 1))
                 {
                     workersAvailable.Remove(worker);
                     commandSystem.EnqueueAbility(worker, Abilities.STOP);
@@ -442,9 +442,7 @@ public class BuildSystem1
         int mineralCost = (int)unitTypeData.MineralCost;
         int vespeneCost = (int)unitTypeData.VespeneCost;
         int foodCost = (int)unitTypeData.FoodRequired;
-        if (resourceRemain.mineral < mineralCost || resourceRemain.vespine < vespeneCost || resourceRemain.food < foodCost && foodCost != 0)
-            return false;
-        return true;
+        return resourceRemain.ResourceEnough(mineralCost, vespeneCost, foodCost);
     }
 
     bool ReadyToUpgrade(UpgradeType upgrade)

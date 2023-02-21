@@ -8,12 +8,6 @@ using System.Numerics;
 
 namespace MilkWang1;
 
-//public enum UnitBattleType
-//{
-//    Undefined = 0,
-//    AttackMain,
-//    ProtectArea,
-//}
 public struct MicroState
 {
     public float inEnemyRangeFood;
@@ -56,16 +50,13 @@ public class BattleSystem1
 
     Random random = new();
 
-    List<Unit> attackArmy = new();
     void Update()
     {
-
         foreach (var deadUnit in analysisSystem.deadUnits)
             units.Remove(deadUnit);
 
         MicroOperate();
 
-        attackArmy.Clear();
         foreach (var unit in units)
         {
             if (esc.Contains(unit.Key))
@@ -73,16 +64,15 @@ public class BattleSystem1
             switch (unit.Value.battleType)
             {
                 case UnitBattleType.AttackMain:
-                    attackArmy.Add(unit.Key);
+                    commandSystem.OptimiseCommand(unit.Key, Abilities.ATTACK_ATTACK, mainTarget);
                     break;
                 case UnitBattleType.ProtectArea:
                     if (Vector2.Distance(unit.Value.protectPosition, unit.Value.unit.position) > 3)
-                        commandSystem.OptimiseCommand(unit.Key, Abilities.ATTACK, unit.Value.protectPosition);
+                        commandSystem.OptimiseCommand(unit.Key, Abilities.ATTACK_ATTACK, unit.Value.protectPosition);
                     break;
             }
         }
         esc.Clear();
-        commandSystem.EnqueueAbility(attackArmy, Abilities.ATTACK, mainTarget);
     }
 
     List<Unit> enemyNearby6 = new();
@@ -212,7 +202,7 @@ public class BattleSystem1
                         if (push)
                             commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, 0.2f, Math.Min(2.0f, fireRange)));
                         else if (enemyMaxRange + 0.5f >= fireRange)
-                            commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
+                            commandSystem.OptimiseCommand(unit, Abilities.ATTACK_ATTACK, enemy.position);
                         else
                             commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, enemyMaxRange + 1.5f)));
                     }
@@ -224,12 +214,12 @@ public class BattleSystem1
                 }
                 else if (unit.weaponCooldown <= 1 && microState1.minLifeEnemy != null)
                 {
-                    commandSystem.EnqueueAbility(unit, Abilities.ATTACK, microState1.minLifeEnemy);
+                    commandSystem.EnqueueAbility(unit, Abilities.ATTACK_ATTACK, microState1.minLifeEnemy);
                     esc.Add(unit);
                 }
                 else if (forward)
                 {
-                    commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
+                    commandSystem.OptimiseCommand(unit, Abilities.ATTACK_ATTACK, enemy.position);
                     esc.Add(unit);
                 }
                 else

@@ -3,19 +3,30 @@
 public class SC2Resource
 {
     public int mineral;
-    public int vespine;
+    public int vespene;
     public int food;
 
-    public bool TryPay(int mineralCost, int vespineCost, int foodCost)
+    public bool ResourceEnough(int mineralCost, int vespeneCost, int foodCost)
     {
         if (mineral < mineralCost && mineralCost != 0)
             return false;
-        if (vespine < vespineCost && vespineCost != 0)
+        if (vespene < vespeneCost && vespeneCost != 0)
+            return false;
+        if (food < foodCost && foodCost != 0)
+            return false;
+        return true;
+    }
+
+    public bool TryPay(int mineralCost, int vespeneCost, int foodCost)
+    {
+        if (mineral < mineralCost && mineralCost != 0)
+            return false;
+        if (vespene < vespeneCost && vespeneCost != 0)
             return false;
         if (food < foodCost && foodCost != 0)
             return false;
         mineral -= mineralCost;
-        vespine -= vespineCost;
+        vespene -= vespeneCost;
         food -= foodCost;
         return true;
     }

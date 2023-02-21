@@ -37,6 +37,11 @@ public class FrameResource
     public int FoodWorkers;
     public int FoodUsed;
 
+    public int MineralLost;
+    public int VespeneLost;
+
+    public int MineralKill;
+    public int VespeneKill;
 
     public int WarpGateCount;
     public int IdleWorkerCount;
@@ -74,6 +79,8 @@ public class FrameResource
             }
         }
         frameResource.GameLoop = gameloop;
+        frameResource.FoodUsed = Math.Clamp(frameResource.FoodUsed, 0, 200);
+        frameResource.FoodCap = Math.Clamp(frameResource.FoodCap, 0, 200);
         return frameResource;
     }
 }

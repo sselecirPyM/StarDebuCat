@@ -1,5 +1,4 @@
-﻿using MilkWangBase;
-using StarDebuCat;
+﻿using StarDebuCat;
 using StarDebuCat.Data;
 using System;
 using System.Collections.Generic;
@@ -20,8 +19,7 @@ public class DebugSystem
     AnalysisSystem1 analysisSystem;
     BuildSystem1 buildSystem;
     TerranBot1 bot;
-    MarkerSystem markerSystem;
-
+    MarkerSystem1 markerSystem;
 
     public List<(Unit, string)> tagUnits = new();
     public List<(Vector2, string)> tagPositions = new();

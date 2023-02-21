@@ -21,6 +21,8 @@ public class BotController : IDisposable
     {
         var botData = JsonConvert.DeserializeObject<BotData>(File.ReadAllText("BotData/terran.json"),
             new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All });
+        var gameData= JsonConvert.DeserializeObject<GameData>(File.ReadAllText("BotData/GameData.json"),
+            new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All });
         gameConnection = new GameConnection();
         subComtroller = new BotSubComtroller();
         var inputSystem = subComtroller.inputSystem = new InputSystem1();
@@ -53,6 +55,7 @@ public class BotController : IDisposable
         subComtroller.terranBot1.BotData = botData;
         subComtroller.battleSystem.BotData = botData;
         subComtroller.buildSystem.BotData = botData;
+        subComtroller.predicationSystem.GameData = gameData;
         subComtroller.commandSystem.gameConnection = gameConnection;
         subComtroller.debugSystem.enable = CLArgs.Debug;
         subComtroller.debugSystem.gameConnection = gameConnection;

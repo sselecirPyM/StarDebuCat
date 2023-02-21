@@ -1,5 +1,4 @@
-﻿using MilkWangBase;
-using MilkWangBase.Attributes;
+﻿using MilkWangBase.Attributes;
 
 namespace MilkWang1;
 
@@ -12,7 +11,7 @@ public class BotSubComtroller
     [System]
     public PredicationSystem1 predicationSystem;
     [System]
-    public MarkerSystem markerSystem;
+    public MarkerSystem1 markerSystem;
     [System]
     public TerranBot1 terranBot1;
     [System]
