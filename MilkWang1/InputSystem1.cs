@@ -27,12 +27,14 @@ public class InputSystem1
     public ResponseData gameData;
     public ResponseObservation observation;
     public Status status;
+    public Result Result;
+    public AIBuild ComputerAIBuild;
 
     #region computer
     public Difficulty ComputerDifficulty = Difficulty.VeryHard;
     public Race ComputerRace = Race.Random;
     #endregion
-    public void Update()
+    public void Update1()
     {
         if (!readyToPlay && status == 0)
         {
@@ -49,7 +51,10 @@ public class InputSystem1
             foreach (var result in observation.PlayerResults)
             {
                 if (result.PlayerId == playerId)
+                {
+                    this.Result = result.Result;
                     Console.WriteLine("Result: {0}", result.Result);
+                }
             }
             readyToPlay = false;
             exitProgram = true;
@@ -70,13 +75,18 @@ public class InputSystem1
         }
         else
         {
+            var player1 = new PlayerSetup
+            {
+                Type = PlayerType.Participant
+            };
             var player2 = new PlayerSetup
             {
                 Race = Race.Random,
                 Type = PlayerType.Computer,
-                Difficulty = ComputerDifficulty
+                Difficulty = ComputerDifficulty,
+                AiBuild = ComputerAIBuild
             };
-            gameConnection.NewGame(player2, map);
+            gameConnection.NewGame(player1, player2, map);
             JoinGame(Race);
         }
         readyToPlay = true;
@@ -102,8 +112,10 @@ public class InputSystem1
             Score = true,
         };
 
-        var request = new Request();
-        request.JoinGame = joinGame;
+        var request = new Request
+        {
+            JoinGame = joinGame
+        };
 
         var response = gameConnection.Request(request);
         var responseJoinGame = response.JoinGame;

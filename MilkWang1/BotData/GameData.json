@@ -53,5 +53,164 @@
     "MORPH_MOTHERSHIP": "PROTOSS_MOTHERSHIP",
     "MORPH_ORBITALCOMMAND": "TERRAN_ORBITALCOMMAND",
     "MORPH_PLANETARYFORTRESS": "TERRAN_PLANETARYFORTRESS"
-  }
+  },
+  "autoCast": {
+    "TERRAN_SIEGETANK": {
+      "ability": "MORPH_SIEGEMODE",
+      "range": 11,
+      "enemyCountRequired": 1
+    },
+    "TERRAN_SIEGETANKSIEGED": {
+      "ability": "MORPH_UNSIEGE",
+      "range": 14,
+      "noEnemy": true
+    },
+    "TERRAN_WIDOWMINE": {
+      "ability": "BURROWDOWN_WIDOWMINE",
+      "range": 8,
+      "noEnemy": true
+    },
+    "TERRAN_WIDOWMINEBURROWED": {
+      "ability": "BURROWUP_WIDOWMINE",
+      "range": 15,
+      "noEnemy": true
+    }
+  },
+  "upgradeRequirements": [
+    {
+      "Researcher": "TERRAN_BARRACKSTECHLAB",
+      "Upgrade": "SHIELDWALL"
+    },
+    {
+      "Researcher": "TERRAN_BARRACKSTECHLAB",
+      "Upgrade": "STIMPACK"
+    },
+    {
+      "Researcher": "TERRAN_BARRACKSTECHLAB",
+      "Upgrade": "PUNISHERGRENADES"
+    },
+    {
+      "Researcher": "TERRAN_FACTORYTECHLAB",
+      "Upgrade": "HIGHCAPACITYBARRELS"
+    },
+    {
+      "Researcher": "TERRAN_FACTORYTECHLAB",
+      "Upgrade": "CYCLONELOCKONDAMAGEUPGRADE"
+    },
+    {
+      "Researcher": "TERRAN_FACTORYTECHLAB",
+      "Upgrade": "DRILLCLAWS",
+      "Requirements": [
+        "TERRAN_ARMORY"
+      ]
+    },
+    {
+      "Researcher": "TERRAN_FACTORYTECHLAB",
+      "Upgrade": "SMARTSERVOS",
+      "Requirements": [
+        "TERRAN_ARMORY"
+      ]
+    },
+    {
+      "Researcher": "TERRAN_STARPORTTECHLAB",
+      "Upgrade": "BANSHEECLOAK"
+    },
+    {
+      "Researcher": "TERRAN_STARPORTTECHLAB",
+      "Upgrade": "RAVENCORVIDREACTOR"
+    },
+    {
+      "Researcher": "TERRAN_STARPORTTECHLAB",
+      "Upgrade": "BANSHEESPEED"
+    },
+    {
+      "Researcher": "TERRAN_GHOSTACADEMY",
+      "Upgrade": "PERSONALCLOAKING"
+    },
+    {
+      "Researcher": "TERRAN_GHOSTACADEMY",
+      "Upgrade": "ENHANCEDSHOCKWAVES"
+    },
+    {
+      "Researcher": "TERRAN_ENGINEERINGBAY",
+      "Upgrade": "TERRANBUILDINGARMOR"
+    },
+    {
+      "Researcher": "TERRAN_ENGINEERINGBAY",
+      "Upgrade": "HISECAUTOTRACKING"
+    },
+    {
+      "Researcher": "TERRAN_FUSIONCORE",
+      "Upgrade": "YAMATOCANNON"
+    },
+    {
+      "Researcher": "PROTOSS_CYBERNETICSCORE",
+      "Upgrade": "WARPGATERESEARCH"
+    },
+    {
+      "Researcher": "PROTOSS_TWILIGHTCOUNCIL",
+      "Upgrade": "CHARGE"
+    },
+    {
+      "Researcher": "PROTOSS_TWILIGHTCOUNCIL",
+      "Upgrade": "BLINKTECH"
+    },
+    {
+      "Researcher": "PROTOSS_TWILIGHTCOUNCIL",
+      "Upgrade": "ADEPTPIERCINGATTACK"
+    },
+    {
+      "Researcher": "PROTOSS_TEMPLARARCHIVE",
+      "Upgrade": "PSISTORMTECH"
+    },
+    {
+      "Researcher": "PROTOSS_DARKSHRINE",
+      "Upgrade": "DARKTEMPLARBLINKUPGRADE"
+    },
+    {
+      "Researcher": "PROTOSS_ROBOTICSBAY",
+      "Upgrade": "OBSERVERGRAVITICBOOSTER"
+    },
+    {
+      "Researcher": "PROTOSS_ROBOTICSBAY",
+      "Upgrade": "SHOWGATLINGGUN"
+    },
+    {
+      "Researcher": "PROTOSS_FLEETBEACON",
+      "Upgrade": "PHOENIXRANGEUPGRADE"
+    },
+    {
+      "Researcher": "PROTOSS_FLEETBEACON",
+      "Upgrade": "VOIDRAYSPEEDUPGRADE"
+    },
+    {
+      "Researcher": "PROTOSS_FLEETBEACON",
+      "Upgrade": "TEMPESTGROUNDATTACKUPGRADE"
+    },
+    {
+      "Researcher": "ZERG_SPAWNINGPOOL",
+      "Upgrade": "ZERGLINGMOVEMENTSPEED"
+    },
+    {
+      "Researcher": "ZERG_SPAWNINGPOOL",
+      "Upgrade": "ZERGLINGATTACKSPEED",
+      "Requirements": [
+        "ZERG_HIVE"
+      ]
+    },
+    {
+      "Researcher": "ZERG_BANELINGNEST",
+      "Upgrade": "CENTRIFICALHOOKS",
+      "Requirements": [
+        "ZERG_LAIR"
+      ]
+    },
+    {
+      "Researcher": "ZERG_HYDRALISK",
+      "Upgrade": "HYDRALISKSPEEDUPGRADE",
+      "Requirements": [
+        "ZERG_HIVE"
+      ]
+    }
+  ]
 }

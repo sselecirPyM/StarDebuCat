@@ -2,7 +2,7 @@
 
 namespace MilkWang1;
 
-public class BotSubComtroller
+public class BotSubController
 {
     [System]
     public InputSystem1 inputSystem;

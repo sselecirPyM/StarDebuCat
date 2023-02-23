@@ -8,16 +8,18 @@ using System.Threading;
 
 namespace StarDebuCat;
 
-public class GameConnection
+public class GameConnection : IDisposable
 {
     public ClientWebSocket clientWebSocket;
     public int connectTimeout = 100000;
     public int readWriteTimeout = 120000;
 
     public Status status;
+
+    int bufferLength = 1024 * 1024;
     public void Connect(string address, int port)
     {
-        int maxTryCount = 30;
+        int maxTryCount = 60;
         int count = 0;
         while (count < maxTryCount)
         {
@@ -127,7 +129,7 @@ public class GameConnection
     }
     public void SendMessage(Request request)
     {
-        var sendBuf = ArrayPool<byte>.Shared.Rent(1024 * 1024);
+        var sendBuf = ArrayPool<byte>.Shared.Rent(bufferLength);
         var outStream = new MemoryStream(sendBuf);
         ProtoBuf.Serializer.Serialize(outStream, request);
         using (CancellationTokenSource cancellationSource = new CancellationTokenSource())
@@ -140,23 +142,22 @@ public class GameConnection
     }
     public Response ReceiveMessage()
     {
-        var receiveBuf = ArrayPool<byte>.Shared.Rent(1024 * 1024);
+        var receiveBuf = ArrayPool<byte>.Shared.Rent(bufferLength);
         var finished = false;
         var currentPosition = 0;
         while (!finished)
         {
+            var left = receiveBuf.Length - currentPosition;
+            if (left <= 0)
+            {
+                // No space left in the array, enlarge the array by doubling its size.
+                var temp = new byte[receiveBuf.Length * 2];
+                Array.Copy(receiveBuf, temp, receiveBuf.Length);
+                receiveBuf = temp;
+                left = receiveBuf.Length - currentPosition;
+            }
             using (CancellationTokenSource cancellationSource = new CancellationTokenSource())
             {
-                var left = receiveBuf.Length - currentPosition;
-                if (left < 0)
-                {
-                    // No space left in the array, enlarge the array by doubling its size.
-                    var temp = new byte[receiveBuf.Length * 2];
-                    Array.Copy(receiveBuf, temp, receiveBuf.Length);
-                    receiveBuf = temp;
-                    left = receiveBuf.Length - currentPosition;
-                }
-
                 cancellationSource.CancelAfter(readWriteTimeout);
                 var task = clientWebSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuf, currentPosition, left), cancellationSource.Token);
                 task.Wait();
@@ -168,35 +169,34 @@ public class GameConnection
                 finished = result.EndOfMessage;
             }
         }
-        //var response = Response.Parser.ParseFrom(receiveBuf, 0, currentPosition);
         var response = ProtoBuf.Serializer.Deserialize<Response>(new ReadOnlySpan<byte>(receiveBuf, 0, currentPosition));
         status = response.Status;
         ArrayPool<byte>.Shared.Return(receiveBuf);
         return response;
     }
 
-    public void NewGame(PlayerSetup opponent, string mapPath)
+    public void NewGame(PlayerSetup player1, PlayerSetup player2, string mapPath)
     {
         if (!File.Exists(mapPath))
         {
             throw new Exception("Unable to locate map: " + mapPath);
         }
 
-
-        var player1 = new PlayerSetup();
-        player1.Type = PlayerType.Participant;
-
-        var createGame = new RequestCreateGame();
-        createGame.Realtime = false;
-        createGame.LocalMap = new LocalMap
+        var createGame = new RequestCreateGame
         {
-            MapPath = mapPath
+            Realtime = false,
+            LocalMap = new LocalMap
+            {
+                MapPath = mapPath
+            },
+            PlayerSetups =
+            {
+                player1,
+                player2
+            }
         };
 
-        createGame.PlayerSetups.Add(player1);
-        createGame.PlayerSetups.Add(opponent);
-
-        var request = new Request()
+        var request = new Request
         {
             CreateGame = createGame,
         };
@@ -206,5 +206,10 @@ public class GameConnection
         {
             throw new Exception(string.Format("Response error \ndetail:{0}", response.CreateGame.ErrorDetails));
         }
+    }
+
+    public void Dispose()
+    {
+        clientWebSocket?.Dispose();
     }
 }

@@ -15,23 +15,31 @@ internal class Program
             {
                 "-g",port.ToString(),
                 "-o",port.ToString(),
-                "--Debug",
-                "-m","BerlingradAIE.SC2Map"
+                "--debug",
+                "--repeat","1",
+                "-m","BerlingradAIE.SC2Map",
+                //"--TestStrategy", "test_tank"
             };
         }
-        Parser.Default.ParseArguments<CLArgs>(args).WithParsed(Run);
+        var parser = new Parser(settings => settings.CaseSensitive = false);
+        parser.ParseArguments<CLArgs>(args).WithParsed(Run);
 
     }
 
     static void Run(CLArgs clArgs)
     {
-        var controller = new BotController
+        int repeatCount = clArgs.Repeat;
+        while (repeatCount > 0)
         {
-            CLArgs = clArgs,
-        };
-        controller.Initialize();
-        while (!controller.exitProgram)
-            controller.Update();
-        controller.Update();
+            repeatCount--;
+            var controller = new BotController
+            {
+                CLArgs = clArgs,
+            };
+            controller.Initialize();
+            while (!controller.exitProgram)
+                controller.Update();
+            controller.Dispose();
+        }
     }
 }

@@ -21,17 +21,15 @@ public class DebugSystem
     TerranBot1 bot;
     MarkerSystem1 markerSystem;
 
-    public List<(Unit, string)> tagUnits = new();
-    public List<(Vector2, string)> tagPositions = new();
+    List<(Unit, string)> tagUnits = new();
+    List<(Vector2, string)> tagPositions = new();
 
     SC2APIProtocol.Request debugRequest;
     int _debugTextCount = 0;
     int _debugSphereCount = 0;
     void Update()
     {
-        if (!enable)
-            return;
-        if (analysisSystem.Debugging)
+        if (enable)
             Debug();
 
         tagUnits.Clear();
@@ -51,7 +49,7 @@ public class DebugSystem
 
         foreach (var mark in markerSystem.marks)
         {
-            if (analysisSystem.Debugging && mark.position != null && mark.unit == null)
+            if (mark.position != null && mark.unit == null)
             {
                 tagPositions.Add((mark.position.Value, mark.name));
             }
@@ -111,7 +109,7 @@ public class DebugSystem
         //        Color = new SC2APIProtocol.Color() { R = (uint)(wave * 128) + 1, G = 1, B = 1 }
         //    });
         //}
-        //foreach (var point in buildSystem.debugPositions)
+        //foreach (var point in buildSystem.resourcePoints)
         //{
         //    byte height = analysisSystem.terrainHeight.Query(point);
 

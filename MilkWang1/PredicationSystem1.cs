@@ -18,6 +18,7 @@ public class PredicationSystem1
     public Dictionary<UnitType, int> buildCompletedUnitTypes = new();
     public Dictionary<UnitType, int> buildNotCompletedUnitTypes = new();
     public Dictionary<UnitType, int> predicatedUnitTypes = new();
+    public Dictionary<UnitType, int> predicatedEquivalentUnitTypes = new();
 
     public List<Unit> buildNotCompletedUnits = new();
 
@@ -47,6 +48,7 @@ public class PredicationSystem1
         buildNotCompletedUnitTypes.Clear();
         buildNotCompletedUnits.Clear();
         predicatedUnitTypes.Clear();
+        predicatedEquivalentUnitTypes.Clear();
         vBuildNotCompleted.Clear();
         foreach (var unit in myUnits)
         {
@@ -106,6 +108,15 @@ public class PredicationSystem1
             }
         }
 
+        foreach (var pair in predicatedUnitTypes)
+        {
+            AddPredictEquivalent(pair.Key, pair.Value);
+        }
+        foreach (var pair in buildCompletedUnitTypes)
+        {
+            AddPredictEquivalent(pair.Key, pair.Value);
+        }
+
         foreach (var pair in vBuildNotCompleted)
         {
             if (buildCompleteFood.TryGetValue(pair.Item1, out var foodCost))
@@ -147,7 +158,7 @@ public class PredicationSystem1
                 canBuildUnits.Add(item.UnitType);
             }
         }
-        foreach (var item in DData.UpgradeRequirements)
+        foreach (var item in GameData.upgradeRequirements)
         {
             bool canResearching = true;
             if (GetBuildCompletedCount(item.Researcher) == 0)
@@ -167,6 +178,20 @@ public class PredicationSystem1
         }
 
         canUpgrades.ExceptWith(analysisSystem.hasUpgrade);
+    }
+
+    void AddPredictEquivalent(UnitType unitType, int typeCount)
+    {
+        var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
+        if (unitTypeData.TechAlias != null)
+            foreach (var alias in unitTypeData.TechAlias)
+            {
+                var unitType1 = (UnitType)alias;
+                predicatedEquivalentUnitTypes.TryGetValue(unitType1, out var count1);
+                predicatedEquivalentUnitTypes[unitType1] = count1 + typeCount;
+            }
+        predicatedEquivalentUnitTypes.TryGetValue(unitType, out var count);
+        predicatedEquivalentUnitTypes[unitType] = count + typeCount;
     }
 
     void Initialize1()
@@ -196,6 +221,12 @@ public class PredicationSystem1
         buildCompletedUnitTypes.TryGetValue(unitType, out var completed);
         predicatedUnitTypes.TryGetValue(unitType, out var predicated);
         return completed + predicated;
+    }
+
+    public int GetPredictEquivalentTotal(UnitType unitType)
+    {
+        predicatedEquivalentUnitTypes.TryGetValue(unitType, out var predicated);
+        return predicated;
     }
 
     UnitType GetAlias(UnitType unitType)

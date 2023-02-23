@@ -112,6 +112,7 @@ public static class DData
         UnitType.ZERG_LURKERMP,
         UnitType.ZERG_QUEEN,
         UnitType.ZERG_ROACH,
+        UnitType.ZERG_RAVAGER,
         UnitType.ZERG_SWARMHOSTMP,
         UnitType.ZERG_ULTRALISK,
         UnitType.ZERG_VIPER,

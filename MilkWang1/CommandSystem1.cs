@@ -1,6 +1,7 @@
 ﻿using StarDebuCat;
 using StarDebuCat.Commanding;
 using StarDebuCat.Data;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -26,15 +27,26 @@ public class CommandSystem1
     {
         if (unit == null)
             return;
-        if (unit.TryGetOrder(out var order) && (Abilities)order.AbilityId == abilities &&
+        if (unit.TryGetOrder(out var order) &&
             order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetWorldSpacePos)
         {
-            var pos = order.TargetWorldSpacePos;
-            var pos1 = new Vector2(pos.X, pos.Y);
-            if (Vector2.DistanceSquared(target, pos1) < 1e-1f)
+            var unitAbilities = (Abilities)order.AbilityId;
+            switch (unitAbilities)
             {
-                return;
+                case Abilities.ATTACK_ATTACK:
+                    unitAbilities = Abilities.ATTACK;
+                    break;
             }
+            if (unitAbilities == abilities)
+            {
+                var pos = order.TargetWorldSpacePos;
+                var pos1 = new Vector2(pos.X, pos.Y);
+                if (Vector2.DistanceSquared(target, pos1) < 1e-1f)
+                {
+                    return;
+                }
+            }
+
         }
         else if (unit.orders.Count == 0)
         {
@@ -64,6 +76,7 @@ public class CommandSystem1
             Y = position.Y
         };
         actionList.UnitsAction(cmd, unit);
+        //Console.WriteLine("{0}:{1}", analysisSystem.GameLoop / 22.4, unitType.ToString());
     }
     public void EnqueueBuild(Unit unit, UnitType unitType, Unit target) => EnqueueBuild(unit.Tag, unitType, target.Tag);
     public void EnqueueBuild(ulong unit, UnitType unitType, ulong target)
@@ -71,6 +84,7 @@ public class CommandSystem1
         var cmd = ActionList.Command(GetBuildAbility(unitType));
         cmd.ActionRaw.UnitCommand.TargetUnitTag = target;
         actionList.UnitsAction(cmd, unit);
+        //Console.WriteLine("{0}:{1}", analysisSystem.GameLoop / 22.4, unitType.ToString());
     }
 
     public void EnqueueTrain(Unit unit, UnitType unitType) => EnqueueTrain(unit.Tag, unitType);
@@ -78,6 +92,7 @@ public class CommandSystem1
     {
         var cmd = ActionList.Command(GetBuildAbility(unitType));
         actionList.UnitsAction(cmd, unit);
+        //Console.WriteLine("{0}:{1}", analysisSystem.GameLoop / 22.4, unitType.ToString());
     }
     Abilities GetBuildAbility(UnitType unitType)
     {

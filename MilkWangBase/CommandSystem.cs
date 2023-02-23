@@ -33,15 +33,26 @@ public class CommandSystem
     {
         if (unit == null)
             return;
-        if (unit.orders.Count > 0 && (Abilities)unit.orders[0].AbilityId == abilities &&
-            unit.orders[0].TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetWorldSpacePos)
+        if (unit.TryGetOrder(out var order) &&
+            order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetWorldSpacePos)
         {
-            var pos = unit.orders[0].TargetWorldSpacePos;
-            var pos1 = new Vector2(pos.X, pos.Y);
-            if (Vector2.DistanceSquared(target, pos1) < 1e-1f)
+            var unitAbilities = (Abilities)order.AbilityId;
+            switch (unitAbilities)
             {
-                return;
+                case Abilities.ATTACK_ATTACK:
+                    unitAbilities = Abilities.ATTACK;
+                    break;
             }
+            if (unitAbilities == abilities)
+            {
+                var pos = order.TargetWorldSpacePos;
+                var pos1 = new Vector2(pos.X, pos.Y);
+                if (Vector2.DistanceSquared(target, pos1) < 1e-1f)
+                {
+                    return;
+                }
+            }
+
         }
         else if (unit.orders.Count == 0)
         {

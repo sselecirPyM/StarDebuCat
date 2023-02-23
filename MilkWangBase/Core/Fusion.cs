@@ -164,6 +164,22 @@ public class Fusion : IDisposable
         }
     }
 
+    public void AddData<T>(T data) where T : class
+    {
+        foreach (var sys in systems)
+        {
+            var type = sys.GetType();
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach(var field in fields)
+            {
+                if (field.FieldType == typeof(T))
+                {
+                    field.SetValue(sys, data);
+                }
+            }
+        }
+    }
+
     public void Update()
     {
         foreach (var o in updates)

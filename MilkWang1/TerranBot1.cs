@@ -53,15 +53,11 @@ public class TerranBot1
 
     public BotData BotData;
 
-    int attackCount = 20;
+    public string TestStrategy;
 
-    int[] range = new int[]
-    {
-        0,
-        6720,
-        10572,
-        16128
-    };
+    BotStrategy botStrategy;
+
+    int attackCount;
 
     int attackTimer = 0;
     void Update()
@@ -75,24 +71,39 @@ public class TerranBot1
 
         var frame = analysisSystem.currentFrameResource;
         int gameLoop = frame.GameLoop;
+        float currentTime = gameLoop / 22.4f;
 
-        var s1 = BotData.buildCounts[0];
-        for (int i = range.Length - 1; i >= 0; i--)
+        buildSystem.requireUnitCount.Clear();
+
+        foreach (var rail in botStrategy.buildRails)
         {
-            if (gameLoop > range[i])
+            int[] range = rail.buildSequenceStart;
+            int findIndex = -1;
+            for (int i = range.Length - 1; i >= 0; i--)
             {
-                s1 = BotData.buildCounts[i];
-                break;
+                if (currentTime > range[i])
+                {
+                    findIndex = i;
+                    break;
+                }
+            }
+            if (findIndex < 0)
+                continue;
+
+            var s1 = rail.buildSequence[findIndex];
+            foreach (var c in s1)
+            {
+                if (buildSystem.requireUnitCount.TryGetValue(c.Key, out var origin))
+                {
+
+                }
+                buildSystem.requireUnitCount[c.Key] = c.Value + origin;
             }
         }
 
-        buildSystem.requireUnitCount.Clear();
-        foreach (var c in s1)
-        {
-            buildSystem.requireUnitCount[c.Key] = c.Value;
-        }
-        buildSystem.requireUnitCount.TryGetValue(UnitType.TERRAN_COMMANDCENTER, out var commandCenterCount);
-        buildSystem.requireUnitCount[UnitType.TERRAN_COMMANDCENTER] = commandCenterCount - predicationSystem.GetPredictTotal(UnitType.TERRAN_ORBITALCOMMAND);
+
+        //buildSystem.requireUnitCount.TryGetValue(UnitType.TERRAN_COMMANDCENTER, out var commandCenterCount);
+        //buildSystem.requireUnitCount[UnitType.TERRAN_COMMANDCENTER] = commandCenterCount - predicationSystem.GetPredictTotal(UnitType.TERRAN_ORBITALCOMMAND);
         var unitDictionary = analysisSystem.unitDictionary;
 
         if (battleSystem.mainTarget == Vector2.Zero)
@@ -103,7 +114,7 @@ public class TerranBot1
 
         bool changeTarget = friendNearbys.Count > 0;
 
-        attackCount = 20 + Math.Min(Math.Max(frame.MineralLost + frame.VespeneLost - frame.MineralKill - frame.VespeneKill, 0) / 100, 30);
+        attackCount = botStrategy.attackCount + Math.Clamp(frame.MineralLost + frame.VespeneLost - frame.MineralKill - frame.VespeneKill, -1000, 1000) / 150;
 
         if (gameLoop > 13440)
         {
@@ -215,6 +226,11 @@ public class TerranBot1
             battleSystem.protectPosition = analysisSystem.patioPointsMerged.Nearest(commandCenterPosition);
         else
             battleSystem.protectPosition = commandCenterPosition;
+
+        if (TestStrategy != null)
+            botStrategy = BotData.botStrategies.First(u => u.Name == TestStrategy);
+        else
+            botStrategy = BotData.botStrategies[0];
     }
 
     void EnemyFindInit()

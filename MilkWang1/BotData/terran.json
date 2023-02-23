@@ -1,17 +1,17 @@
 ﻿{
   "buildCounts": [
     {
-      "$id": "b0",
+      "$id": "b10",
       "TERRAN_BARRACKS": 6,
       "TERRAN_BARRACKSTECHLAB": 0,
       "TERRAN_MARINE": 100,
-      "TERRAN_SCV": 22,
+      "TERRAN_SCV": 21,
       "TERRAN_MULE": 10,
       "TERRAN_COMMANDCENTER": 1,
       "TERRAN_ORBITALCOMMAND": 1
     },
     {
-      "$id": "b1",
+      "$id": "b11",
       "TERRAN_BARRACKS": 6,
       "TERRAN_FACTORY": 2,
       "TERRAN_BARRACKSTECHLAB": 2,
@@ -21,11 +21,10 @@
       "TERRAN_SCV": 48,
       "TERRAN_MULE": 10,
       "TERRAN_COMMANDCENTER": 2,
-      "TERRAN_ORBITALCOMMAND": 2,
-      "TERRAN_REFINERY": 2
+      "TERRAN_ORBITALCOMMAND": 2
     },
     {
-      "$id": "b2",
+      "$id": "b12",
       "TERRAN_BARRACKS": 6,
       "TERRAN_FACTORY": 2,
       "TERRAN_BARRACKSTECHLAB": 2,
@@ -36,16 +35,15 @@
       "TERRAN_MULE": 10,
       "TERRAN_COMMANDCENTER": 3,
       "TERRAN_ORBITALCOMMAND": 10,
-      "TERRAN_REFINERY": 6,
       "TERRAN_ENGINEERINGBAY": 2,
       "TERRAN_ARMORY": 1
     },
     {
-      "$id": "b10",
+      "$id": "b13",
       "TERRAN_BARRACKS": 6,
       "TERRAN_FACTORY": 4,
       "TERRAN_GHOSTACADEMY": 1,
-      "TERRAN_STARPORT": 1,
+      "TERRAN_STARPORT": 2,
       "TERRAN_BARRACKSTECHLAB": 2,
       "TERRAN_FACTORYTECHLAB": 4,
       "TERRAN_STARPORTTECHLAB": 1,
@@ -53,12 +51,77 @@
       "TERRAN_MARINE": 30,
       "TERRAN_GHOST": 10,
       "TERRAN_HELLION": 4,
-      "TERRAN_THOR": 8,
-      "TERRAN_SCV": 50,
+      "TERRAN_VIKINGFIGHTER": 8,
+      "TERRAN_SCV": 60,
       "TERRAN_MULE": 10,
       "TERRAN_COMMANDCENTER": 5,
       "TERRAN_ORBITALCOMMAND": 10,
-      "TERRAN_REFINERY": 10,
+      "TERRAN_ENGINEERINGBAY": 2,
+      "TERRAN_ARMORY": 2
+    },
+    {
+      "$id": "b20",
+      "TERRAN_BARRACKS": 1,
+      "TERRAN_FACTORY": 2,
+      "TERRAN_FACTORYTECHLAB": 2,
+      "TERRAN_SIEGETANK": 10,
+      "TERRAN_MARINE": 10,
+      "TERRAN_SCV": 24,
+      "TERRAN_MULE": 10,
+      "TERRAN_COMMANDCENTER": 1,
+      "TERRAN_ORBITALCOMMAND": 1
+    },
+    {
+      "$id": "b21",
+      "TERRAN_BARRACKS": 2,
+      "TERRAN_FACTORY": 2,
+      "TERRAN_FACTORYTECHLAB": 2,
+      "TERRAN_SIEGETANK": 10,
+      "TERRAN_BARRACKSTECHLAB": 2,
+      "TERRAN_MARINE": 20,
+      "TERRAN_MARAUDER": 5,
+      "TERRAN_HELLION": 10,
+      "TERRAN_SCV": 48,
+      "TERRAN_MULE": 10,
+      "TERRAN_COMMANDCENTER": 2,
+      "TERRAN_ORBITALCOMMAND": 2
+    },
+    {
+      "$id": "b22",
+      "TERRAN_BARRACKS": 2,
+      "TERRAN_FACTORY": 2,
+      "TERRAN_FACTORYTECHLAB": 2,
+      "TERRAN_SIEGETANK": 10,
+      "TERRAN_BARRACKSTECHLAB": 2,
+      "TERRAN_MARINE": 50,
+      "TERRAN_MARAUDER": 10,
+      "TERRAN_HELLION": 5,
+      "TERRAN_SCV": 50,
+      "TERRAN_MULE": 10,
+      "TERRAN_COMMANDCENTER": 2,
+      "TERRAN_ORBITALCOMMAND": 10,
+      "TERRAN_ENGINEERINGBAY": 2,
+      "TERRAN_ARMORY": 1
+    },
+    {
+      "$id": "b23",
+      "TERRAN_BARRACKS": 2,
+      "TERRAN_FACTORY": 4,
+      "TERRAN_FACTORYTECHLAB": 2,
+      "TERRAN_SIEGETANK": 10,
+      "TERRAN_GHOSTACADEMY": 1,
+      "TERRAN_STARPORT": 2,
+      "TERRAN_BARRACKSTECHLAB": 2,
+      "TERRAN_STARPORTTECHLAB": 1,
+      "TERRAN_RAVEN": 2,
+      "TERRAN_MARINE": 30,
+      "TERRAN_GHOST": 10,
+      "TERRAN_HELLION": 4,
+      "TERRAN_VIKINGFIGHTER": 8,
+      "TERRAN_SCV": 60,
+      "TERRAN_MULE": 10,
+      "TERRAN_COMMANDCENTER": 5,
+      "TERRAN_ORBITALCOMMAND": 10,
       "TERRAN_ENGINEERINGBAY": 2,
       "TERRAN_ARMORY": 2
     },
@@ -103,5 +166,109 @@
     ]
   },
   "supplyBuilding": "TERRAN_SUPPLYDEPOT",
-  "workerType": "TERRAN_SCV"
+  "workerType": "TERRAN_SCV",
+  "race": "Terran",
+  "botStrategies": [
+    {
+      "name": "marineRush",
+      "attackCount": 20,
+      "buildRails": [
+        {
+          "buildSequence": [
+            {
+              "$ref": "b10"
+            },
+            {
+              "$ref": "b11"
+            },
+            {
+              "$ref": "b12"
+            },
+            {
+              "$ref": "b13"
+            }
+          ],
+          "buildSequenceStart": [
+            0,
+            300,
+            470,
+            720
+          ]
+        },
+        {
+          "buildSequence": [
+            {
+              "TERRAN_REFINERY": 2,
+              "TERRAN_SCV": 3
+            },
+            {
+              "TERRAN_REFINERY": 4
+            },
+            {
+              "TERRAN_REFINERY": 6
+            },
+            {
+              "TERRAN_REFINERY": 10
+            }
+          ],
+          "buildSequenceStart": [
+            260,
+            330,
+            500,
+            720
+          ]
+        }
+      ]
+    },
+    {
+      "name": "test_tank",
+      "attackCount": 20,
+      "buildRails": [
+        {
+          "buildSequence": [
+            {
+              "$ref": "b20"
+            },
+            {
+              "$ref": "b21"
+            },
+            {
+              "$ref": "b22"
+            },
+            {
+              "$ref": "b23"
+            }
+          ],
+          "buildSequenceStart": [
+            0,
+            300,
+            470,
+            720
+          ]
+        },
+        {
+          "buildSequence": [
+            {
+              "TERRAN_REFINERY": 2
+            },
+            {
+              "TERRAN_REFINERY": 4
+            },
+            {
+              "TERRAN_REFINERY": 6
+            },
+            {
+              "TERRAN_REFINERY": 10
+            }
+          ],
+          "buildSequenceStart": [
+            90,
+            330,
+            500,
+            720
+          ]
+        }
+      ]
+    }
+  ]
 }

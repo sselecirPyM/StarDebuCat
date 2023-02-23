@@ -65,11 +65,10 @@ public class AnalysisSystem1
     public List<Vector2> patioPoints = new();
     public List<Vector2> patioPointsMerged = new();
 
-    public bool Debugging;
+    public GameData GameData;
 
     void Update()
     {
-        Debugging = !inputSystem.ladderGame;
         CollectData();
         CollectScores();
         CollectUnits();
@@ -141,7 +140,7 @@ public class AnalysisSystem1
                 buildUnits1.Add(unitType);
         }
         UpgradesResearcher = new();
-        foreach (var requirement in DData.UpgradeRequirements)
+        foreach (var requirement in GameData.upgradeRequirements)
         {
             var researcher = requirement.Researcher;
             var upgrade = requirement.Upgrade;

@@ -163,7 +163,7 @@ public static class TreeExt
         }
     }
 
-    public static void Group(this QuadTree<Unit> quadTree, List<Vector2> result, float maxDistance)
+    public static void Group(this QuadTree<Unit> quadTree, List<Vector2> result, float maxDistance, int minCull = 0)
     {
         Dictionary<Unit, int> ids = new();
         Dictionary<int, int> alias = new();
@@ -235,7 +235,8 @@ public static class TreeExt
             if (reorder[i].Item1 != prev)
             {
                 var p1 = avg / pointCount;
-                result.Add(p1);
+                if (pointCount > minCull)
+                    result.Add(p1);
                 avg = Vector2.Zero;
                 pointCount = 0;
                 prev = reorder[i].Item1;
@@ -243,7 +244,7 @@ public static class TreeExt
             avg += reorder[i].Item2;
             pointCount++;
         }
-        if (pointCount > 0)
+        if (pointCount > minCull)
         {
             var p1 = avg / pointCount;
             result.Add(p1);

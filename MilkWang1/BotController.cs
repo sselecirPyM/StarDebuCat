@@ -12,23 +12,25 @@ public class BotController : IDisposable
     public GameConnection gameConnection;
 
     public CLArgs CLArgs;
-    public BotSubComtroller subComtroller;
+    public BotSubController subController;
     Fusion fusion;
 
     public bool exitProgram;
 
     public void Initialize()
     {
+        //File.WriteAllText("requirement.json", JsonConvert.SerializeObject(StarDebuCat.Data.DData.UpgradeRequirements,new JsonSerializerSettings { Converters = { new StringEnumConverter()},DefaultValueHandling=DefaultValueHandling.Ignore }));
+
         var botData = JsonConvert.DeserializeObject<BotData>(File.ReadAllText("BotData/terran.json"),
             new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All });
-        var gameData= JsonConvert.DeserializeObject<GameData>(File.ReadAllText("BotData/GameData.json"),
+        var gameData = JsonConvert.DeserializeObject<GameData>(File.ReadAllText("BotData/GameData.json"),
             new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All });
         gameConnection = new GameConnection();
-        subComtroller = new BotSubComtroller();
-        var inputSystem = subComtroller.inputSystem = new InputSystem1();
+        subController = new BotSubController();
+        var inputSystem = subController.inputSystem = new InputSystem1();
 
         inputSystem.ladderGame = true;
-        inputSystem.Race = SC2APIProtocol.Race.Terran;
+        inputSystem.Race = (SC2APIProtocol.Race)botData.race;
         inputSystem.port = CLArgs.StartPort;
         inputSystem.gamePort = CLArgs.GamePort;
         if (CLArgs.Map != null)
@@ -38,12 +40,13 @@ public class BotController : IDisposable
             inputSystem.ladderGame = false;
             inputSystem.ComputerDifficulty = CLArgs.ComputerDifficulty;
             inputSystem.ComputerRace = CLArgs.ComputerRace;
+            inputSystem.ComputerAIBuild = CLArgs.AIBuild;
         }
         inputSystem.gameConnection = gameConnection;
 
         while (!inputSystem.readyToPlay && !inputSystem.exitProgram)
         {
-            inputSystem.Update();
+            inputSystem.Update1();
         }
         if (inputSystem.exitProgram)
         {
@@ -51,26 +54,29 @@ public class BotController : IDisposable
             return;
         }
 
-        fusion = new Fusion(subComtroller);
-        subComtroller.terranBot1.BotData = botData;
-        subComtroller.battleSystem.BotData = botData;
-        subComtroller.buildSystem.BotData = botData;
-        subComtroller.predicationSystem.GameData = gameData;
-        subComtroller.commandSystem.gameConnection = gameConnection;
-        subComtroller.debugSystem.enable = CLArgs.Debug;
-        subComtroller.debugSystem.gameConnection = gameConnection;
+        fusion = new Fusion(subController);
+        fusion.AddData(botData);
+        fusion.AddData(gameData);
+
+        subController.commandSystem.gameConnection = gameConnection;
+        subController.debugSystem.enable = CLArgs.Debug;
+        subController.debugSystem.gameConnection = gameConnection;
 
         fusion.InitializeSystems();
+        subController.terranBot1.TestStrategy = CLArgs.TestStrategy;
     }
 
     public void Update()
     {
-        fusion.Update();
-        exitProgram = subComtroller.inputSystem.exitProgram;
+        subController.inputSystem.Update1();
+        exitProgram = subController.inputSystem.exitProgram;
+        if (!exitProgram)
+            fusion.Update();
     }
 
     public void Dispose()
     {
         fusion.Dispose();
+        gameConnection.Dispose();
     }
 }

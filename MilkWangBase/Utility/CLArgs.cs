@@ -23,4 +23,14 @@ public class CLArgs
 
     [Option("OpponentId")]
     public string OpponentId { get; set; }
+
+    [Option("Learning")]
+    public bool Learning { get; set; }
+    [Option("Repeat")]
+    public int Repeat { get; set; } = 1;
+    [Option("AIBuild")]
+    public AIBuild AIBuild { get; set; } = AIBuild.RandomBuild;
+
+    [Option]
+    public string TestStrategy { get; set; }
 }

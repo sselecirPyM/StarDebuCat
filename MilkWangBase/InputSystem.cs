@@ -74,13 +74,17 @@ public class InputSystem
         }
         else
         {
+            var player1 = new PlayerSetup
+            {
+                Type = PlayerType.Participant
+            };
             var player2 = new PlayerSetup
             {
                 Race = Race.Random,
                 Type = PlayerType.Computer,
                 Difficulty = ComputerDifficulty
             };
-            gameConnection.NewGame(player2, map);
+            gameConnection.NewGame(player1, player2, map);
             JoinGame(Race);
         }
         readyToPlay = true;
@@ -106,8 +110,10 @@ public class InputSystem
             Score = true,
         };
 
-        var request = new Request();
-        request.JoinGame = joinGame;
+        var request = new Request
+        {
+            JoinGame = joinGame
+        };
 
         var response = gameConnection.Request(request);
         var responseJoinGame = response.JoinGame;

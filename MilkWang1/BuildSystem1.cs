@@ -58,8 +58,6 @@ public class BuildSystem1
 
     public List<Vector2> resourcePoints;
 
-    public List<Vector2> debugPositions;
-
     public Dictionary<UnitType, int> requireUnitCount = new();
     public HashSet<UpgradeType> requireUpgrade = new();
 
@@ -213,8 +211,15 @@ public class BuildSystem1
             var refineryType = GetRefineryType(worker.type);
             if (NeedBuildUnit(refineryType))
             {
-                workersAvailable.Remove(worker);
-                commandSystem.EnqueueBuild(worker, refineryType, vespene);
+                if (ResourceEnough(refineryType))
+                {
+                    workersAvailable.Remove(worker);
+                    commandSystem.EnqueueBuild(worker, refineryType, vespene);
+                }
+                else
+                {
+
+                }
             }
         }
         if (workersAvailable.Count > 0 && refinery.Count > 0 && TryGetAvailableWorker(out worker))
@@ -235,9 +240,7 @@ public class BuildSystem1
                 commandSystem.EnqueueAbility(worker, Abilities.HARVEST_GATHER, _refinery);
             }
         }
-        {
 
-        }
         if (TryGetAvailableWorker(out worker))
         {
             if (worker.TryGetOrder(out var order) && order.TargetUnitTag != 0 &&
@@ -424,16 +427,14 @@ public class BuildSystem1
 
     bool ReadyToBuild(UnitType unitType)
     {
-        if (!predicationSystem.canBuildUnits.Contains(unitType) && ResourceEnough(unitType))
-            return false;
-        return predicationSystem.GetPredictTotal(unitType) < GetRequireUnitCount(unitType);
+        return NeedBuildUnit(unitType) && ResourceEnough(unitType);
     }
 
     bool NeedBuildUnit(UnitType unitType)
     {
         if (!predicationSystem.canBuildUnits.Contains(unitType))
             return false;
-        return predicationSystem.GetPredictTotal(unitType) < GetRequireUnitCount(unitType);
+        return predicationSystem.GetPredictEquivalentTotal(unitType) < GetRequireUnitCount(unitType);
     }
 
     bool ResourceEnough(UnitType unitType)
@@ -483,7 +484,6 @@ public class BuildSystem1
         placementImage = new Image(analysisSystem.build);
         nonResourcePlacementImage = new Image(analysisSystem.build);
 
-        debugPositions = new();
         foreach (var mineral in minerals)
         {
             var positionf = mineral.position;
@@ -492,10 +492,6 @@ public class BuildSystem1
                 for (int j = -3; j < 4; j++)
                     if (!((i == -4 || i == 3) && (j == -3 || j == 3)))
                     {
-                        //if (placementImage.Query(position.Item1 + i, position.Item2 + j) != 0)
-                        //{
-                        //    debugPositions.Add(new(position.Item1 + i + 0.5f, position.Item2 + j + 0.5f));
-                        //}
                         placementImage.Write(position.Item1 + i, position.Item2 + j, false);
                     }
         }
@@ -512,7 +508,7 @@ public class BuildSystem1
                     }
         }
         resourcePoints = new List<Vector2>();
-        minerals1.Group(resourcePoints, 5);
+        minerals1.Group(resourcePoints, 5, 4);
         List<Unit> m1 = new();
         for (int i = 0; i < resourcePoints.Count; i++)
             resourcePoints[i] = AdjustResourcePoint(resourcePoints[i], m1);
@@ -522,12 +518,8 @@ public class BuildSystem1
                 for (int j = -2; j < 3; j++)
                 {
                     placementImage.Write((int)resourcePoint.X + i, (int)resourcePoint.Y + j, false);
-                    //debugPositions.Add(new(resourcePoint.X + i, resourcePoint.Y + j));
                 }
         }
-
-        //foreach (var resourcePoint in resourcePoints)
-        //    markerSystem.AddMark(resourcePoint, "ResourcePoint", 1000);
     }
 
     Vector2 AdjustResourcePoint(Vector2 point, List<Unit> minerals)
