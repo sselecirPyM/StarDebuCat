@@ -9,8 +9,32 @@ public enum UnitBattleType
     AttackMain,
     ProtectArea,
 }
+public enum MicroStrategy
+{
+    None,
+    Push,
+    Forward,
+    Kite
+}
 public class BattleUnit
 {
+    public float inEnemyRangeFood;
+    public float enemyInRangeFood;
+    public float friendlyNearByFood;
+    public float dummyEnemyMaxRange;
+    public float enemyMaxRange;
+
+    public int enemyAnyInRange;
+    public Unit nearestEnemy;
+    public Unit minLifeEnemy;
+    public float nearestDistance;
+
+    public MicroStrategy microStrategy;
+    public int stateCode;
+
+    public bool command;
+
+
     public Unit unit;
 
     public Vector2 protectPosition;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using SC2APIProtocol;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace StarDebuCat.Data;
@@ -25,7 +26,9 @@ public class Unit
     public bool isFlying;
     public bool isBurrowed;
     public float lastTrackTime;
+    public List<BuffData> buffDatas;
     public List<int> passangers;
+    public List<BuffType> buffs;
     public int cargoSpaceTaken;
     public int cargoSpaceMax;
     public int passagerGuess;
@@ -78,6 +81,18 @@ public class Unit
         vespeneContents = unit.VespeneContents;
         radarRange = unit.RadarRange;
         isBlip = unit.IsBlip;
+        if (unit.BuffIds != null)
+        {
+            if (buffs == null)
+            {
+                buffs = new List<BuffType>();
+            }
+            buffs.Clear();
+            foreach(var buffId in unit.BuffIds)
+            {
+                buffs.Add((BuffType)buffId);
+            }
+        }
         //tracking = true;
     }
 
@@ -93,6 +108,13 @@ public class Unit
             order = null;
             return false;
         }
+    }
+
+    public bool HasBuff(BuffType buffType)
+    {
+        if (buffs == null)
+            return false;
+        return buffs.Contains(buffType);
     }
 
     public override string ToString()

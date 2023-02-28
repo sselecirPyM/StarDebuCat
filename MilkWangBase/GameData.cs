@@ -1,7 +1,7 @@
 ﻿using StarDebuCat.Data;
 using System.Collections.Generic;
 
-namespace MilkWang1;
+namespace MilkWangBase;
 
 public class AutoCast
 {

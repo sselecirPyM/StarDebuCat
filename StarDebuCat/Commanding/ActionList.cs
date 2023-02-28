@@ -75,12 +75,35 @@ public class ActionList
         actions.Add(action);
     }
 
+    public void UnitsAutocastAction(Action action, Unit unit)
+    {
+        //action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
+        action.ActionRaw.ToggleAutocast.UnitTags = new ulong[] { unit.Tag };
+        actions.Add(action);
+    }
+
+    public void UnitsAutocastAction(Action action, ulong unit)
+    {
+        //action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
+        action.ActionRaw.ToggleAutocast.UnitTags = new ulong[] { unit };
+        actions.Add(action);
+    }
+
     public static Action Command(Abilities ability)
     {
         var action = new Action();
         action.ActionRaw = new ActionRaw();
         action.ActionRaw.UnitCommand = new ActionRawUnitCommand();
         action.ActionRaw.UnitCommand.AbilityId = (int)ability;
+        return action;
+    }
+
+    public static Action AutoCastCommand(Abilities ability)
+    {
+        var action = new Action();
+        action.ActionRaw = new ActionRaw();
+        action.ActionRaw.ToggleAutocast = new ActionRawToggleAutocast();
+        action.ActionRaw.ToggleAutocast.AbilityId=(int)ability;
         return action;
     }
 

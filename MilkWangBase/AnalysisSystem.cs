@@ -55,7 +55,7 @@ public class AnalysisSystem
     List<(object[], List<Unit>)> unitFindCache = new();
 
     public List<PowerSource> powerSources = new();
-    public List<Effect> effects = new();
+    public List<PointEffect> effects = new();
     public List<Vector2> buildPoints = new();
 
     public Image visable;
@@ -312,7 +312,7 @@ public class AnalysisSystem
         {
             foreach (var point in effect.Pos)
             {
-                var effect1 = new Effect();
+                var effect1 = new PointEffect();
                 effect1.Update(effect.EffectId, point);
                 effects.Add(effect1);
             }

@@ -1,4 +1,4 @@
-﻿namespace MilkWang1;
+﻿namespace MilkWangBase;
 
 public class SC2Resource
 {

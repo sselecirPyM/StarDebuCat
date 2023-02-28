@@ -83,6 +83,7 @@ public static class DData
         UnitType.PROTOSS_TEMPEST,
         UnitType.PROTOSS_VOIDRAY,
         UnitType.PROTOSS_ZEALOT,
+        UnitType.PROTOSS_PHOTONCANNON,
         UnitType.TERRAN_BANSHEE,
         UnitType.TERRAN_BATTLECRUISER,
         UnitType.TERRAN_CYCLONE,

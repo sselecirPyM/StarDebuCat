@@ -2,7 +2,7 @@
 
 namespace StarDebuCat.Data;
 
-public class Effect
+public class PointEffect
 {
     public ulong Id;
     public Vector2 Pos;

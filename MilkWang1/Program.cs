@@ -18,6 +18,7 @@ internal class Program
                 "--debug",
                 "--repeat","1",
                 "-m","BerlingradAIE.SC2Map",
+                "--AIBuild", "Timing",
                 //"--TestStrategy", "test_tank"
             };
         }

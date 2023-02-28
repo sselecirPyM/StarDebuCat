@@ -1,4 +1,5 @@
-﻿using MilkWangBase.Core;
+﻿using MilkWangBase;
+using MilkWangBase.Core;
 using MilkWangBase.Utility;
 using Newtonsoft.Json;
 using StarDebuCat;
@@ -22,9 +23,17 @@ public class BotController : IDisposable
         //File.WriteAllText("requirement.json", JsonConvert.SerializeObject(StarDebuCat.Data.DData.UpgradeRequirements,new JsonSerializerSettings { Converters = { new StringEnumConverter()},DefaultValueHandling=DefaultValueHandling.Ignore }));
 
         var botData = JsonConvert.DeserializeObject<BotData>(File.ReadAllText("BotData/terran.json"),
-            new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All });
+            new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.All,
+                ReferenceLoopHandling = ReferenceLoopHandling.Serialize
+            });
         var gameData = JsonConvert.DeserializeObject<GameData>(File.ReadAllText("BotData/GameData.json"),
-            new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All });
+            new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.All,
+                ReferenceLoopHandling = ReferenceLoopHandling.Serialize
+            });
         gameConnection = new GameConnection();
         subController = new BotSubController();
         var inputSystem = subController.inputSystem = new InputSystem1();
@@ -57,10 +66,9 @@ public class BotController : IDisposable
         fusion = new Fusion(subController);
         fusion.AddData(botData);
         fusion.AddData(gameData);
-
-        subController.commandSystem.gameConnection = gameConnection;
+        fusion.AddData(gameConnection);
+        ;
         subController.debugSystem.enable = CLArgs.Debug;
-        subController.debugSystem.gameConnection = gameConnection;
 
         fusion.InitializeSystems();
         subController.terranBot1.TestStrategy = CLArgs.TestStrategy;

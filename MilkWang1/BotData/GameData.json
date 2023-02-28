@@ -57,7 +57,7 @@
   "autoCast": {
     "TERRAN_SIEGETANK": {
       "ability": "MORPH_SIEGEMODE",
-      "range": 11,
+      "range": 12.5,
       "enemyCountRequired": 1
     },
     "TERRAN_SIEGETANKSIEGED": {
@@ -74,6 +74,11 @@
       "ability": "BURROWUP_WIDOWMINE",
       "range": 15,
       "noEnemy": true
+    },
+    "TERRAN_GHOST": {
+      "ability": "EFFECT_EMP",
+      "range": 10,
+      "energyRequired": 75
     }
   },
   "upgradeRequirements": [

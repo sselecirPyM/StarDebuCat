@@ -1,6 +1,7 @@
 ﻿using SC2APIProtocol;
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
@@ -122,6 +123,22 @@ public class GameConnection : IDisposable
         };
         return Request(observationRequest).Observation;
     }
+    public List<ResponseQueryAvailableAbilities> RequestAvailableAbilities(IReadOnlyList<Data.Unit> units)
+    {
+        var query = new RequestQuery();
+        query.Abilities.EnsureCapacity(units.Count);
+        foreach (var unit in units)
+        {
+            query.Abilities.Add(new RequestQueryAvailableAbilities() { UnitTag = unit.Tag });
+        }
+
+        var request = new Request()
+        {
+            Query = query
+        };
+        return Request(request).Query.Abilities;
+    }
+
     public Response Request(Request request)
     {
         SendMessage(request);

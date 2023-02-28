@@ -71,17 +71,22 @@ public class TerranBot1
 
         var frame = analysisSystem.currentFrameResource;
         int gameLoop = frame.GameLoop;
+        float previousTime = (gameLoop - 1) / 22.4f;
         float currentTime = gameLoop / 22.4f;
 
         buildSystem.requireUnitCount.Clear();
 
         foreach (var rail in botStrategy.buildRails)
         {
-            int[] range = rail.buildSequenceStart;
+            int[] sequenceStart = rail.buildSequenceStart;
             int findIndex = -1;
-            for (int i = range.Length - 1; i >= 0; i--)
+            for (int i = sequenceStart.Length - 1; i >= 0; i--)
             {
-                if (currentTime > range[i])
+                //if (previousTime <= sequenceStart[i] && currentTime > sequenceStart[i])
+                //{
+                //    findIndex = i;
+                //}
+                if (currentTime > sequenceStart[i])
                 {
                     findIndex = i;
                     break;
@@ -101,6 +106,16 @@ public class TerranBot1
             }
         }
 
+        //foreach (var deadUnit in analysisSystem.deadUnits)
+        //{
+        //    if (deadUnit.alliance == Alliance.Self)
+        //    {
+        //        if (buildSystem.requireUnitCount.TryGetValue(deadUnit.type, out var origin))
+        //        {
+        //            buildSystem.requireUnitCount[deadUnit.type] = Math.Max(origin - 1, 0);
+        //        }
+        //    }
+        //}
 
         //buildSystem.requireUnitCount.TryGetValue(UnitType.TERRAN_COMMANDCENTER, out var commandCenterCount);
         //buildSystem.requireUnitCount[UnitType.TERRAN_COMMANDCENTER] = commandCenterCount - predicationSystem.GetPredictTotal(UnitType.TERRAN_ORBITALCOMMAND);
@@ -132,9 +147,9 @@ public class TerranBot1
                 if (!keepers.Any(u => Vector2.Distance(u.position, battleSystem.mainTarget) < 7))
                 {
                     keepers.Add(randomUnit);
-                    if (!battleSystem.units.TryGetValue(randomUnit, out var bu))
+                    if (!battleSystem.battleUnits.TryGetValue(randomUnit, out var bu))
                     {
-                        battleSystem.units[randomUnit] = bu = new BattleUnit(randomUnit);
+                        battleSystem.battleUnits[randomUnit] = bu = new BattleUnit(randomUnit);
                     }
                     bu.battleType = UnitBattleType.ProtectArea;
                     bu.protectPosition = battleSystem.mainTarget;
@@ -160,9 +175,9 @@ public class TerranBot1
 
         foreach (var army in armies)
         {
-            if (!battleSystem.units.TryGetValue(army, out var unit))
+            if (!battleSystem.battleUnits.TryGetValue(army, out var unit))
             {
-                battleSystem.units[army] = unit = new BattleUnit(army);
+                battleSystem.battleUnits[army] = unit = new BattleUnit(army);
             }
             if (keepers.Contains(army))
                 continue;

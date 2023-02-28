@@ -1,7 +1,6 @@
 ﻿using StarDebuCat;
 using StarDebuCat.Commanding;
 using StarDebuCat.Data;
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -56,6 +55,50 @@ public class CommandSystem1
             }
         }
         EnqueueAbility(unit, abilities, target);
+    }
+
+    public void OptimiseCommand(Unit unit, Abilities abilities, Unit targetUnit)
+    {
+        if (unit == null)
+            return;
+        if (unit.TryGetOrder(out var order) &&
+            order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetUnitTag)
+        {
+            var unitAbilities = (Abilities)order.AbilityId;
+            switch (unitAbilities)
+            {
+                case Abilities.ATTACK_ATTACK:
+                    unitAbilities = Abilities.ATTACK;
+                    break;
+            }
+            if (unitAbilities == abilities && order.TargetUnitTag == targetUnit.Tag)
+            {
+                return;
+            }
+        }
+        EnqueueAbility(unit, abilities, targetUnit);
+    }
+
+    public void OptimiseCommand(Unit unit, Abilities abilities)
+    {
+        if (unit == null)
+            return;
+        if (unit.TryGetOrder(out var order) &&
+            order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None)
+        {
+            var unitAbilities = (Abilities)order.AbilityId;
+            if (unitAbilities == abilities)
+            {
+                return;
+            }
+        }
+        EnqueueAbility(unit, abilities);
+    }
+
+    public void ToggleAutocastAbility(Unit unit, Abilities abilities)
+    {
+        var cmd = ActionList.AutoCastCommand(abilities);
+        actionList.UnitsAutocastAction(cmd, unit);
     }
 
     public void EnqueueAbility(Unit unit, Abilities abilities) => actionList.EnqueueAbility(unit, abilities);

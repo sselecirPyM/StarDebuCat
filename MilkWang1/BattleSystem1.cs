@@ -1,4 +1,6 @@
-﻿using MilkWangBase.Attributes;
+﻿using MilkWang1.Micros;
+using MilkWangBase;
+using MilkWangBase.Attributes;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -8,24 +10,6 @@ using System.Numerics;
 
 namespace MilkWang1;
 
-public enum MicroStrategy
-{
-    None,
-    Push,
-    Forward,
-    Kite
-}
-
-public struct MicroState
-{
-    public float inEnemyRangeFood;
-    public float enemyInRangeFood;
-    public float friendlyNearByFood;
-    public float enemyMaxRange;
-    public Unit nearestEnemy;
-    public Unit minLifeEnemy;
-    public float nearestDistance;
-}
 public class BattleSystem1
 {
     AnalysisSystem1 analysisSystem;
@@ -38,7 +22,7 @@ public class BattleSystem1
     public BotData BotData;
     public GameData GameData;
 
-    public Dictionary<Unit, BattleUnit> units = new();
+    public Dictionary<Unit, BattleUnit> battleUnits = new();
 
     [XFind("QuadTree", Alliance.Self)]
     public QuadTree<Unit> myUnits1;
@@ -55,73 +39,100 @@ public class BattleSystem1
     public Vector2 mainTarget;
     public Vector2 protectPosition;
 
-    HashSet<Unit> esc = new();
+    public Dictionary<UnitType, IMicro> micros;
 
     Random random = new();
+    IMicro defaultMicro;
+
+    void Initialize()
+    {
+        defaultMicro = new DefaultMicro(commandSystem, analysisSystem, this);
+        CycloneMicro cycloneMicro = new CycloneMicro(commandSystem, analysisSystem, this);
+        micros = new Dictionary<UnitType, IMicro>();
+        micros[UnitType.TERRAN_CYCLONE] = cycloneMicro;
+        micros[(UnitType)99999] = defaultMicro;
+    }
 
     void Update()
     {
+        foreach (var army in armies)
+        {
+            if (!battleUnits.TryGetValue(army, out var unit))
+            {
+                battleUnits[army] = unit = new BattleUnit(army);
+            }
+        }
         foreach (var deadUnit in analysisSystem.deadUnits)
-            units.Remove(deadUnit);
+            battleUnits.Remove(deadUnit);
 
         MicroOperate();
 
-        foreach (var unit in units)
+        foreach (var pair in battleUnits)
         {
-            if (esc.Contains(unit.Key))
+            if (pair.Value.command)
+            {
+                pair.Value.command = false;
                 continue;
-            switch (unit.Value.battleType)
+            }
+            switch (pair.Value.battleType)
             {
                 case UnitBattleType.AttackMain:
-                    commandSystem.OptimiseCommand(unit.Key, Abilities.ATTACK, mainTarget);
+                    commandSystem.OptimiseCommand(pair.Key, Abilities.ATTACK, mainTarget);
                     break;
                 case UnitBattleType.ProtectArea:
-                    if (Vector2.Distance(unit.Value.protectPosition, unit.Value.unit.position) > 3)
-                        commandSystem.OptimiseCommand(unit.Key, Abilities.ATTACK, unit.Value.protectPosition);
+                    if (Vector2.Distance(pair.Value.protectPosition, pair.Value.unit.position) > 3)
+                        commandSystem.OptimiseCommand(pair.Key, Abilities.ATTACK, pair.Value.protectPosition);
                     break;
             }
         }
-        esc.Clear();
     }
 
-    List<Unit> enemyNearby6 = new();
+    List<Unit> enemyNearbyMix = new();
 
     List<Unit> enemyNearbyAll = new();
     List<Unit> friendNearbys = new();
-    Dictionary<Unit, MicroState> microStates = new();
+    List<Unit> enemyAny = new();
+
     Dictionary<Unit, int> enemyChaseCount = new();
     void MicroOperate()
     {
-        microStates.Clear();
         enemyChaseCount.Clear();
         foreach (var unit in armies)
         {
+            float fireRange = analysisSystem.fireRanges[(int)unit.type];
+
             var unitPosition = unit.position;
-            enemyArmies1.ClearSearch(enemyNearby6, unitPosition, 15f);
-            enemyUnits1.Search(enemyNearby6, unitPosition, 3.5f);
+            enemyArmies1.ClearSearch(enemyNearbyMix, unitPosition, 15f);
+            enemyUnits1.Search(enemyNearbyMix, unitPosition, 3.5f);
             armies1.ClearSearch(friendNearbys, unitPosition, 5.5f);
+
+            enemyUnits1.ClearSearch(enemyAny, unitPosition, fireRange + 1.5f);
 
             float inEnemyRange = 0;
             float enemyInRange = 0;
             float friendlyNearByFood = 0;
+            float dummyEnemyMaxRange = 0;
             float enemyMaxRange = 0;
             Unit nearestEnemy = null;
             Unit minLifeEnemy = null;
             float nearestDistance = 20.0f;
             float minLife = 150.0f;
-            foreach (var enemy in enemyNearby6)
+            foreach (var enemy in enemyNearbyMix)
             {
                 var enemyTypeData = analysisSystem.GetUnitTypeData(enemy);
-                float enemyRange = Math.Max(analysisSystem.fireRanges[(int)enemy.type], 3);
-                float fireRange = analysisSystem.fireRanges[(int)unit.type];
+                float enemyRange = analysisSystem.fireRanges[(int)enemy.type];
+                float dummyEnemyRange = Math.Max(enemyRange, 3) + 2.5f;
                 float fireRange1 = Math.Max(fireRange, 4);
                 float distance = Math.Max(Vector2.Distance(unitPosition, enemy.position) - unit.radius - enemy.radius, 0);
-                if (distance < enemyRange + 2.5f)
+                if (distance < dummyEnemyRange)
                     inEnemyRange += enemyTypeData.FoodRequired;
                 if (distance < fireRange1 + 0.5f)
                     enemyInRange += enemyTypeData.FoodRequired;
 
-                enemyMaxRange = Math.Max(enemyMaxRange, enemyRange);
+                dummyEnemyMaxRange = Math.Max(dummyEnemyMaxRange, dummyEnemyRange);
+
+                if (distance < enemyRange + 2.5f)
+                    enemyMaxRange = Math.Max(enemyMaxRange, enemyRange);
 
                 if (enemy.health < minLife && distance < fireRange + 0.2f)
                 {
@@ -147,115 +158,54 @@ public class BattleSystem1
                 var friendlyTypeData = analysisSystem.GetUnitTypeData(friendly);
                 friendlyNearByFood += friendlyTypeData.FoodRequired;
             }
-            var microstate1 = new MicroState()
-            {
-                enemyInRangeFood = enemyInRange,
-                inEnemyRangeFood = inEnemyRange,
-                friendlyNearByFood = friendlyNearByFood,
-                enemyMaxRange = enemyMaxRange,
-                nearestDistance = nearestDistance,
-                nearestEnemy = nearestEnemy,
-                minLifeEnemy = minLifeEnemy,
-            };
-            microStates[unit] = microstate1;
-        }
+            var battleUnit = battleUnits[unit];
 
+            battleUnit.enemyInRangeFood = enemyInRange;
+            battleUnit.inEnemyRangeFood = inEnemyRange;
+            battleUnit.friendlyNearByFood = friendlyNearByFood;
+            battleUnit.dummyEnemyMaxRange = dummyEnemyMaxRange;
+            battleUnit.enemyMaxRange = enemyMaxRange;
+            battleUnit.nearestDistance = nearestDistance;
+            battleUnit.nearestEnemy = nearestEnemy;
+            battleUnit.minLifeEnemy = minLifeEnemy;
+            battleUnit.enemyAnyInRange = enemyAny.Count;
+        }
+        foreach (var micro in micros)
+        {
+            micro.Value.NewFrame();
+        }
+        foreach (var pair in battleUnits)
+        {
+            if (micros.TryGetValue(pair.Key.type, out var micro))
+            {
+                micro.Micro(pair.Value);
+            }
+        }
         foreach (var unit in armies)
         {
+            var battleUnit = battleUnits[unit];
+            if (battleUnit.command)
+                continue;
             float fireRange = analysisSystem.fireRanges[(int)unit.type];
-            var microState1 = microStates[unit];
-            MicroStrategy microStrategy;
 
-            if (microState1.inEnemyRangeFood < microState1.friendlyNearByFood * 0.7f)
+            if (battleUnit.inEnemyRangeFood < battleUnit.friendlyNearByFood * 0.7f)
             {
-                microStrategy = MicroStrategy.Push;
+                battleUnit.microStrategy = MicroStrategy.Push;
             }
-            else if (microState1.inEnemyRangeFood < microState1.friendlyNearByFood * 1.0f)
+            else if (battleUnit.inEnemyRangeFood < battleUnit.friendlyNearByFood * 1.0f)
             {
-                microStrategy = MicroStrategy.Forward;
+                battleUnit.microStrategy = MicroStrategy.Forward;
             }
-            else if (microState1.inEnemyRangeFood < microState1.friendlyNearByFood * 1.5f + 1 && fireRange < 2.0f)
+            else if (battleUnit.inEnemyRangeFood < battleUnit.friendlyNearByFood * 1.5f + 1 && fireRange < 2.0f)
             {
-                microStrategy = MicroStrategy.Forward;
+                battleUnit.microStrategy = MicroStrategy.Forward;
             }
             else
             {
-                microStrategy = MicroStrategy.None;
-            }
-            if (!CastAbil(unit, microState1, microStrategy))
-                MicroAttack(unit, microState1, microStrategy);
-        }
-    }
-
-    bool CastAbil(Unit unit, MicroState microState1, MicroStrategy microStrategy)
-    {
-        bool cast = false;
-        if (GameData.autoCast.TryGetValue(unit.type, out var autoCast) &&
-            unit.TryGetOrder(out var order) && (Abilities)order.AbilityId != autoCast.ability)
-        {
-            bool hasEnemy = microState1.nearestEnemy != null;
-
-            cast |= !autoCast.noEnemy && hasEnemy && microState1.nearestDistance < autoCast.range;
-            cast |= autoCast.noEnemy && (!hasEnemy || microState1.nearestDistance > autoCast.range);
-
-            if (cast && analysisSystem.abilitiesData[(int)autoCast.ability].target == SC2APIProtocol.AbilityData.Target.None)
-            {
-                commandSystem.EnqueueAbility(unit, autoCast.ability);
-                esc.Add(unit);
-            }
-        }
-
-        return cast;
-    }
-
-    void MicroAttack(Unit unit, MicroState microState1, MicroStrategy microStrategy)
-    {
-        var unitPosition = unit.position;
-        float fireRange = analysisSystem.fireRanges[(int)unit.type];
-
-        var enemy = microState1.nearestEnemy;
-        var enemyMaxRange = microState1.enemyMaxRange;
-        if (enemy != null)
-        {
-            if (enemyMaxRange < fireRange && microState1.nearestDistance > fireRange)
-            {
-                microStrategy = MicroStrategy.Push;
+                battleUnit.microStrategy = MicroStrategy.None;
             }
 
-            if (unit.weaponCooldown > 0.1f * 22.4f && fireRange > 2)
-            {
-                switch (microStrategy)
-                {
-                    case MicroStrategy.Forward:
-                        if (enemyMaxRange + 0.5f >= fireRange)
-                            commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
-                        else
-                            commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, enemyMaxRange + 1.5f)));
-                        break;
-                    case MicroStrategy.Push:
-                        commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, 0.2f, Math.Min(2.0f, fireRange)));
-                        break;
-                    case MicroStrategy.None:
-                        commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, enemyMaxRange + 1.5f)));
-                        break;
-                }
-                esc.Add(unit);
-            }
-            else if (unit.weaponCooldown <= 1 && microState1.minLifeEnemy != null)
-            {
-                commandSystem.EnqueueAbility(unit, Abilities.ATTACK, microState1.minLifeEnemy);
-                esc.Add(unit);
-            }
-            else if (microStrategy == MicroStrategy.Forward || microStrategy == MicroStrategy.Push)
-            {
-                commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
-                esc.Add(unit);
-            }
-            else
-            {
-                commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Max(fireRange, enemyMaxRange + 1.0f)));
-                esc.Add(unit);
-            }
+            defaultMicro.Micro(battleUnit);
         }
     }
 }

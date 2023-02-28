@@ -28,6 +28,7 @@ public class AnalysisSystem1
     public List<SC2APIProtocol.AbilityData> abilitiesData;
     public List<SC2APIProtocol.UpgradeData> upgradeDatas;
     public List<SC2APIProtocol.BuffData> buffDatas;
+    public List<SC2APIProtocol.EffectData> effectDatas;
     public Dictionary<Abilities, SC2APIProtocol.UnitTypeData> abilToUnitTypeData;
     public Dictionary<Abilities, SC2APIProtocol.UpgradeData> abilToUpgrade;
 
@@ -53,7 +54,8 @@ public class AnalysisSystem1
     List<(object[], List<Unit>)> unitFindCache = new();
 
     public List<PowerSource> powerSources = new();
-    public List<Effect> effects = new();
+    public List<SC2APIProtocol.Effect> rawEffect = new();
+    public List<PointEffect> effects = new();
     public List<Vector2> buildPoints = new();
 
     public Image visable;
@@ -102,25 +104,22 @@ public class AnalysisSystem1
             }
         }
 
-        abilitiesData = new();
-        abilitiesData.AddRange(inputSystem.gameData.Abilities);
+        abilitiesData = new(inputSystem.gameData.Abilities);
         abilToUnitTypeData = new();
         foreach (var unitTypeData in unitTypeDatas)
         {
             if (unitTypeData.AbilityId != 0)
                 abilToUnitTypeData[(Abilities)unitTypeData.AbilityId] = unitTypeData;
         }
-        upgradeDatas = new();
-        upgradeDatas.AddRange(inputSystem.gameData.Upgrades);
+        upgradeDatas = new(inputSystem.gameData.Upgrades);
         abilToUpgrade = new();
         foreach (var upgrade in upgradeDatas)
         {
             if (upgrade.AbilityId != 0)
                 abilToUpgrade[(Abilities)upgrade.AbilityId] = upgrade;
         }
-        buffDatas = new();
-        buffDatas.AddRange(inputSystem.gameData.Buffs);
-
+        buffDatas = new(inputSystem.gameData.Buffs);
+        effectDatas = new(inputSystem.gameData.Effects);
 
         Spawners = new();
         foreach (var requirement in DData.UnitRequirements)
@@ -139,6 +138,13 @@ public class AnalysisSystem1
             if (!buildUnits1.Contains(unitType))
                 buildUnits1.Add(unitType);
         }
+        AnalizeResearchs();
+        AnalizeTerrain();
+        race = (Race)inputSystem.Race;
+    }
+
+    void AnalizeResearchs()
+    {
         UpgradesResearcher = new();
         foreach (var requirement in GameData.upgradeRequirements)
         {
@@ -152,7 +158,10 @@ public class AnalysisSystem1
             if (!upgradeRequirements.Contains(upgrade))
                 upgradeRequirements.Add(upgrade);
         }
+    }
 
+    void AnalizeTerrain()
+    {
         var startRaw = inputSystem.gameInfo.StartRaw;
         var size = startRaw.PathingGrid.Size;
         MapSize = (size.X, size.Y);
@@ -183,8 +192,6 @@ public class AnalysisSystem1
                 }
         patio.Group(patioPointsMerged, 4);
         #endregion patio
-
-        race = (Race)inputSystem.Race;
     }
     #endregion
     void CollectScores()
@@ -304,11 +311,13 @@ public class AnalysisSystem1
         {
             foreach (var point in effect.Pos)
             {
-                var effect1 = new Effect();
+                var effect1 = new PointEffect();
                 effect1.Update(effect.EffectId, point);
                 effects.Add(effect1);
             }
         }
+        rawEffect.Clear();
+        rawEffect.AddRange(rawData.Effects);
 
         visable = new(rawData.MapState.Visibility);
 
@@ -413,8 +422,7 @@ public class AnalysisSystem1
                 {
                     return false;
                 }
-                else if ((unit.owner == neutralResourceId || unit.owner == playerId)
-                    && alliance == Alliance.Enemy)
+                else if ((unit.owner == neutralResourceId || unit.owner == playerId) && alliance == Alliance.Enemy)
                 {
                     return false;
                 }

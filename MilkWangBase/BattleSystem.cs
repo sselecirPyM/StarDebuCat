@@ -14,7 +14,7 @@ public enum UnitBattleType
     AttackMain,
     ProtectArea,
 }
-public struct MicroState
+public class MicroState
 {
     public float inEnemyRangeFood;
     public float enemyInRangeFood;
