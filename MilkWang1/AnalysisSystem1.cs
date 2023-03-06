@@ -37,7 +37,7 @@ public class AnalysisSystem1
 
     public HashSet<UpgradeType> hasUpgrade = new();
 
-    public FrameResource currentFrameResource = new();
+    public FrameResource currentFrameResource = new() { KillUnitCount = new(), LostUnitCount = new() };
 
     public List<FrameResource> historyFrameResource = new();
     public readonly int sampleRate = 32;
@@ -126,7 +126,7 @@ public class AnalysisSystem1
         {
             var builder = requirement.Builder;
             var unitType = requirement.UnitType;
-            if (DData.Building.Contains(unitType))
+            if (GameData.building.Contains(unitType))
             {
                 continue;
             }
@@ -240,6 +240,9 @@ public class AnalysisSystem1
             MineralLost = previousFrameResource.MineralLost,
             VespeneLost = previousFrameResource.VespeneLost,
 
+            KillUnitCount = new(previousFrameResource.KillUnitCount),
+            LostUnitCount = new(previousFrameResource.LostUnitCount),
+
             GameLoop = (int)observation.GameLoop,
         };
         if (currentSample == 0)
@@ -341,11 +344,13 @@ public class AnalysisSystem1
             {
                 currentFrameResource.MineralLost += (int)unitTypeData.MineralCost;
                 currentFrameResource.VespeneLost += (int)unitTypeData.VespeneCost;
+                currentFrameResource.LostUnitCount.Increment(unit.type);
             }
             else if (unit.alliance == Alliance.Enemy)
             {
                 currentFrameResource.MineralKill += (int)unitTypeData.MineralCost;
                 currentFrameResource.VespeneKill += (int)unitTypeData.VespeneCost;
+                currentFrameResource.KillUnitCount.Increment(unit.type);
             }
         }
     }
@@ -455,15 +460,15 @@ public class AnalysisSystem1
                     case "IsPowered" when unit.isPowered:
                     case "Idle" when unit.orders.Count == 0:
                     case "Enter" when enterSightUnit.ContainsKey(unit.Tag):
-                    case "MineralField" when DData.MineralFields.Contains(unit.type):
-                    case "VespeneGeyser" when DData.VespeneGeysers.Contains(unit.type):
-                    case "Army" when DData.Army.Contains(unit.type):
-                    case "CommandCenter" when DData.CommandCenters.Contains(unit.type):
-                    case "Building" when DData.Building.Contains(unit.type):
+                    case "MineralField" when GameData.mineralFields.Contains(unit.type):
+                    case "VespeneGeyser" when GameData.vespeneGeysers.Contains(unit.type):
+                    case "Army" when GameData.armies.Contains(unit.type):
+                    case "CommandCenter" when GameData.commandCenters.Contains(unit.type):
+                    case "Building" when GameData.building.Contains(unit.type):
                     case "OutOfSight" when visable.Query(unit.position) != 2:
                     case "BuildComplete" when unit.buildProgress == 1:
-                    case "Worker" when DData.Workers.Contains(unit.type):
-                    case "Refinery" when DData.Refinery.Contains(unit.type):
+                    case "Worker" when GameData.workers.Contains(unit.type):
+                    case "Refinery" when GameData.refineries.Contains(unit.type):
                     case "Factory" when Factories.Contains(unit.type):
                         continue;
                     default:
@@ -503,8 +508,11 @@ public class AnalysisSystem1
     static HashSet<UnitType> Factories = new()
     {
         UnitType.TERRAN_BARRACKS,
+        UnitType.TERRAN_BARRACKSFLYING,
         UnitType.TERRAN_FACTORY,
+        UnitType.TERRAN_FACTORYFLYING,
         UnitType.TERRAN_STARPORT,
+        UnitType.TERRAN_STARPORTFLYING,
         UnitType.PROTOSS_GATEWAY,
         UnitType.PROTOSS_WARPGATE,
         UnitType.PROTOSS_ROBOTICSFACILITY,

@@ -38,11 +38,8 @@ public class PredicationSystem1
 
     bool initialized = false;
 
-    public void Update()
+    void Clear()
     {
-        if (!initialized)
-            Initialize1();
-
         foodPrediction20s = 0;
         buildCompletedUnitTypes.Clear();
         buildNotCompletedUnitTypes.Clear();
@@ -50,6 +47,15 @@ public class PredicationSystem1
         predicatedUnitTypes.Clear();
         predicatedEquivalentUnitTypes.Clear();
         vBuildNotCompleted.Clear();
+        canBuildUnits.Clear();
+    }
+
+    public void Update()
+    {
+        if (!initialized)
+            Initialize1();
+        Clear();
+
         foreach (var unit in myUnits)
         {
             UnitType unitType = GetAlias(unit.type);
@@ -128,21 +134,10 @@ public class PredicationSystem1
             }
         }
 
-        canBuildUnits.Clear();
         foreach (var item in DData.UnitRequirements)
         {
-            bool canBuild = true;
             if (GetBuildCompletedCount(item.Builder) == 0)
                 continue;
-            if (item.Requirements != null)
-                foreach (var req1 in item.Requirements)
-                {
-                    if (GetBuildCompletedCount(req1) == 0)
-                    {
-                        canBuild = false;
-                        break;
-                    }
-                }
             if (item.needLab)
             {
                 switch (item.Builder)
@@ -153,6 +148,16 @@ public class PredicationSystem1
                         continue;
                 }
             }
+            bool canBuild = true;
+            if (item.Requirements != null)
+                foreach (var requirement in item.Requirements)
+                {
+                    if (GetBuildCompletedCount(requirement) == 0)
+                    {
+                        canBuild = false;
+                        break;
+                    }
+                }
             if (canBuild)
             {
                 canBuildUnits.Add(item.UnitType);
@@ -160,15 +165,16 @@ public class PredicationSystem1
         }
         foreach (var item in GameData.upgradeRequirements)
         {
-            bool canResearching = true;
             if (GetBuildCompletedCount(item.Researcher) == 0)
                 continue;
+            bool canResearching = true;
             if (item.Requirements != null)
-                foreach (var req1 in item.Requirements)
+                foreach (var requirement in item.Requirements)
                 {
-                    if (GetBuildCompletedCount(req1) == 0)
+                    if (GetBuildCompletedCount(requirement) == 0)
                     {
                         canResearching = false;
+                        break;
                     }
                 }
             if (canResearching)

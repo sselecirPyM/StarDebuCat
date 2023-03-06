@@ -64,6 +64,8 @@ public class BuildSystem1
 
     public BotData BotData;
 
+    public GameData GameData;
+
     public bool randomlyUpgrade = true;
 
     SC2Resource resourceRemain = new SC2Resource();
@@ -119,7 +121,7 @@ public class BuildSystem1
         {
             if (nearByMineral.TryGetRandom(random, out var mineral))
             {
-                commandSystem.EnqueueAbility(worker1, Abilities.HARVEST_GATHER, mineral);
+                commandSystem.OptimiseCommand(worker1, Abilities.HARVEST_GATHER, mineral);
             }
         }
 
@@ -142,12 +144,18 @@ public class BuildSystem1
                 if (commandCenter.type == UnitType.TERRAN_ORBITALCOMMAND && commandCenter.energy >= 50 &&
                     nearByMineral1.TryGetRandom(random, out var mineral1) && NeedBuildUnit(UnitType.TERRAN_MULE))
                 {
-                    commandSystem.EnqueueAbility(commandCenter, Abilities.EFFECT_CALLDOWNMULE, mineral1);
+                    commandSystem.OptimiseCommand(commandCenter, Abilities.EFFECT_CALLDOWNMULE, mineral1);
                 }
                 else if (commandCenter.type == UnitType.TERRAN_COMMANDCENTER && NeedBuildUnit(UnitType.TERRAN_ORBITALCOMMAND))
                 {
-                    commandSystem.EnqueueAbility(commandCenter, Abilities.MORPH_ORBITALCOMMAND);
+                    commandSystem.OptimiseCommand(commandCenter, Abilities.MORPH_ORBITALCOMMAND);
                     resourceRemain.mineral -= 150;
+                }
+                else if (commandCenter.type == UnitType.TERRAN_COMMANDCENTER && NeedBuildUnit(UnitType.TERRAN_PLANETARYFORTRESS))
+                {
+                    commandSystem.OptimiseCommand(commandCenter, Abilities.MORPH_PLANETARYFORTRESS);
+                    resourceRemain.mineral -= 150;
+                    resourceRemain.vespene -= 150;
                 }
                 else if (NeedBuildUnit(workerType))
                 {
@@ -216,7 +224,7 @@ public class BuildSystem1
         {
             if (worker.TryGetOrder(out var order) && order.TargetUnitTag != 0)
             {
-                if (analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var target) && DData.Refinery.Contains(target.type) &&
+                if (analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var target) && GameData.refineries.Contains(target.type) &&
                     (target.assignedHarvesters > 3 || target.buildProgress != 1))
                 {
                     workersAvailable.Remove(worker);
@@ -226,7 +234,7 @@ public class BuildSystem1
             if (_refinery.assignedHarvesters < 3 && _refinery.buildProgress == 1 && Vector2.Distance(worker.position, _refinery.position) < 10)
             {
                 workersAvailable.Remove(worker);
-                commandSystem.EnqueueAbility(worker, Abilities.HARVEST_GATHER, _refinery);
+                commandSystem.OptimiseCommand(worker, Abilities.HARVEST_GATHER, _refinery);
             }
         }
 
@@ -234,17 +242,14 @@ public class BuildSystem1
         {
             if (worker.TryGetOrder(out var order) && order.TargetUnitTag != 0 &&
                 analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var target) &&
-                DData.CommandCenters.Contains(target.type) &&
+                GameData.commandCenters.Contains(target.type) &&
                 target.assignedHarvesters > target.idealHarvesters * 1.5)
             {
                 workersAvailable.Remove(worker);
-                //minerals1.Search(nearByMineral, worker.position, 40);
-                if (nearByMineral.Count > 0)
+                if (nearByMineral.TryGetRandom(random, out var unit))
                 {
-                    var unit = nearByMineral.GetRandom(random);
-                    commandSystem.EnqueueAbility(worker, Abilities.SMART, unit);
+                    commandSystem.OptimiseCommand(worker, Abilities.HARVEST_GATHER, unit);
                 }
-
             }
         }
 
@@ -253,30 +258,19 @@ public class BuildSystem1
         {
             if (unit.orders.Count == 0)
             {
-                commandSystem.EnqueueAbility(unit, BotData.onIdle[unit.type], unit.position + random.NextVector2(-5, 5));
+                commandSystem.OptimiseCommand(unit, BotData.onIdle[unit.type], unit.position + random.NextVector2(-5, 5));
             }
         }
 
-        foreach (var barracks1 in factories)
+        foreach (var factory in factories)
         {
-            UnitType labType;
-            switch (barracks1.type)
+            UnitType labType = GetLabType(factory.type);
+            if (labType == UnitType.INVALID)
+                continue;
+
+            if (factory.addOnTag == 0 && factory.orders.Count == 0 && factory.buildProgress == 1 && ReadyToBuild(labType))
             {
-                case UnitType.TERRAN_BARRACKS:
-                    labType = UnitType.TERRAN_BARRACKSTECHLAB;
-                    break;
-                case UnitType.TERRAN_FACTORY:
-                    labType = UnitType.TERRAN_FACTORYTECHLAB;
-                    break;
-                case UnitType.TERRAN_STARPORT:
-                    labType = UnitType.TERRAN_STARPORTTECHLAB;
-                    break;
-                default:
-                    continue;
-            }
-            if (barracks1.addOnTag == 0 && barracks1.orders.Count == 0 && barracks1.buildProgress == 1 && ReadyToBuild(labType))
-            {
-                Build(barracks1, labType, barracks1.position, 5);
+                Build(factory, labType, factory.position, 5);
             }
         }
         foreach (var factory in factories)
@@ -358,7 +352,8 @@ public class BuildSystem1
             {
                 break;
             }
-        predicationSystem.predicatedUnitTypes.Increment(unitType);
+        //predicationSystem.predicatedUnitTypes.Increment(unitType);
+        predicationSystem.predicatedEquivalentUnitTypes.Increment(unitType);
         Abilities ability = unitType switch
         {
             UnitType.PROTOSS_ZEALOT => Abilities.TRAINWARP_ZEALOT,
@@ -369,7 +364,7 @@ public class BuildSystem1
             UnitType.PROTOSS_DARKTEMPLAR => Abilities.TRAINWARP_DARKTEMPLAR,
             _ => Abilities.INVALID,
         };
-        commandSystem.EnqueueAbility(unit, ability, position);
+        commandSystem.OptimiseCommand(unit, ability, position);
         return true;
     }
 
@@ -397,7 +392,8 @@ public class BuildSystem1
         if (!resourceRemain.TryPay(mineralCost, vespeneCost, foodCost))
             return false;
 
-        predicationSystem.predicatedUnitTypes.Increment(unitType);
+        //predicationSystem.predicatedUnitTypes.Increment(unitType);
+        predicationSystem.predicatedEquivalentUnitTypes.Increment(unitType);
         commandSystem.EnqueueBuild(unit, unitType, position);
         return true;
     }
@@ -411,7 +407,8 @@ public class BuildSystem1
         if (!resourceRemain.TryPay(mineralCost, vespeneCost, foodCost))
             return false;
 
-        predicationSystem.predicatedUnitTypes.Increment(unitType);
+        //predicationSystem.predicatedUnitTypes.Increment(unitType);
+        predicationSystem.predicatedEquivalentUnitTypes.Increment(unitType);
         commandSystem.EnqueueBuild(unit, unitType, target);
         return true;
     }
@@ -474,9 +471,24 @@ public class BuildSystem1
         int foodCost = (int)unitTypeData.FoodRequired;
         if (!resourceRemain.TryPay(mineralCost, vespeneCost, foodCost))
             return false;
-        predicationSystem.predicatedUnitTypes.Increment(unitType);
+        //predicationSystem.predicatedUnitTypes.Increment(unitType);
+        predicationSystem.predicatedEquivalentUnitTypes.Increment(unitType);
         commandSystem.EnqueueTrain(unit, unitType);
         return true;
+    }
+
+    UnitType GetLabType(UnitType unitType)
+    {
+        return unitType switch
+        {
+            UnitType.TERRAN_BARRACKS => UnitType.TERRAN_BARRACKSTECHLAB,
+            UnitType.TERRAN_BARRACKSFLYING => UnitType.TERRAN_BARRACKSTECHLAB,
+            UnitType.TERRAN_FACTORY => UnitType.TERRAN_FACTORYTECHLAB,
+            UnitType.TERRAN_FACTORYFLYING => UnitType.TERRAN_FACTORYTECHLAB,
+            UnitType.TERRAN_STARPORT => UnitType.TERRAN_STARPORTTECHLAB,
+            UnitType.TERRAN_STARPORTFLYING => UnitType.TERRAN_STARPORTTECHLAB,
+            _=> UnitType.INVALID
+        };
     }
 
     UnitType GetRefineryType(UnitType unitType)
@@ -486,7 +498,7 @@ public class BuildSystem1
             UnitType.TERRAN_SCV => UnitType.TERRAN_REFINERY,
             UnitType.PROTOSS_PROBE => UnitType.PROTOSS_ASSIMILATOR,
             UnitType.ZERG_DRONE => UnitType.ZERG_EXTRACTOR,
-            _ => UnitType.ZERG_EXTRACTOR,
+            _ => UnitType.INVALID,
         };
     }
 

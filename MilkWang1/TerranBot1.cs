@@ -127,7 +127,7 @@ public class TerranBot1
         }
         myUnits1.ClearSearch(friendNearbys, battleSystem.mainTarget, 3);
 
-        bool changeTarget = friendNearbys.Count > 0;
+        bool changeTarget = friendNearbys.Count > 2;
 
         attackCount = botStrategy.attackCount + Math.Clamp(frame.MineralLost + frame.VespeneLost - frame.MineralKill - frame.VespeneKill, -1000, 1000) / 150;
 

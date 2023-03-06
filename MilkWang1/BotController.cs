@@ -28,7 +28,7 @@ public class BotController : IDisposable
                 PreserveReferencesHandling = PreserveReferencesHandling.All,
                 ReferenceLoopHandling = ReferenceLoopHandling.Serialize
             });
-        var gameData = JsonConvert.DeserializeObject<GameData>(File.ReadAllText("BotData/GameData.json"),
+        var gameData = JsonConvert.DeserializeObject<GameData>(File.ReadAllText("GameData/GameData.json"),
             new JsonSerializerSettings
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.All,

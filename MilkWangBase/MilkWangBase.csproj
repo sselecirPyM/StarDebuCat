@@ -13,4 +13,10 @@
     <ProjectReference Include="..\StarDebuCat\StarDebuCat.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="GameData\GameData.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

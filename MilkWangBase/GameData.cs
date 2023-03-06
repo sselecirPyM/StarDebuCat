@@ -18,6 +18,13 @@ public class AutoCast
 public class GameData
 {
     public HashSet<UnitType> selfBuild;
+    public HashSet<UnitType> refineries;
+    public HashSet<UnitType> vespeneGeysers;
+    public HashSet<UnitType> mineralFields;
+    public HashSet<UnitType> building;
+    public HashSet<UnitType> armies;
+    public HashSet<UnitType> workers;
+    public HashSet<UnitType> commandCenters;
     public Dictionary<Abilities, UnitType> morphToUnit;
     public Dictionary<UnitType, int> buildCompleteFoodCost;
     public Dictionary<UnitType, AutoCast> autoCast;

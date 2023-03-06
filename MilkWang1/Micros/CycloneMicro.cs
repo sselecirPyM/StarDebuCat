@@ -47,9 +47,10 @@ public class CycloneMicro : IMicro
     {
         (lock1, lock2) = (lock2, lock1);
         lock1.Clear();
+        var unitMap = analysisSystem.unitDictionary;
         foreach (var pair in lock2)
         {
-            if (analysisSystem.unitDictionary.TryGetValue(pair.Value, out var target) && target.HasBuff(BuffType.LockOn))
+            if (unitMap.TryGetValue(pair.Value, out var target) && target.HasBuff(BuffType.LockOn))
             {
                 lockonPair[pair.Key] = pair.Value;
                 pair.Key.stateCode = 3;
@@ -58,8 +59,8 @@ public class CycloneMicro : IMicro
 
         foreach (var pair in lockonPair)
         {
-            if (analysisSystem.unitDictionary.TryGetValue(pair.Value, out var target) &&
-                analysisSystem.unitDictionary.TryGetValue(pair.Key.unit.Tag, out var source) &&
+            if (unitMap.TryGetValue(pair.Value, out var target) &&
+                unitMap.TryGetValue(pair.Key.unit.Tag, out var source) &&
                 target.HasBuff(BuffType.LockOn))
             {
 

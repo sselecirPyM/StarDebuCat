@@ -8,7 +8,7 @@ namespace MilkWangBase.Core;
 public class Fusion : IDisposable
 {
     public List<object> systems = new();
-    public Dictionary<Type, object> systems1 = new();
+    public Dictionary<Type, object> instanceSource = new();
     public List<(object, MethodInfo)> updates = new();
     public List<(object, MethodInfo)> lateUpdates = new();
 
@@ -30,6 +30,7 @@ public class Fusion : IDisposable
 
     public Fusion(object controller)
     {
+        instanceSource[typeof(Fusion)] = this;
         AddChildSystems(controller);
     }
 
@@ -49,7 +50,7 @@ public class Fusion : IDisposable
                     item.SetValue(obj, inst);
                 }
                 systems.Add(inst);
-                systems1.Add(inst.GetType(), inst);
+                instanceSource.Add(inst.GetType(), inst);
                 AddChildSystems(inst);
             }
         }
@@ -75,7 +76,7 @@ public class Fusion : IDisposable
         List<string> diffusionNames = new List<string>();
         foreach (var field in fields)
         {
-            if (systems1.TryGetValue(field.FieldType, out var sys1))
+            if (instanceSource.TryGetValue(field.FieldType, out var sys1))
             {
                 field.SetValue(system, sys1);
             }
@@ -166,11 +167,12 @@ public class Fusion : IDisposable
 
     public void AddData<T>(T data) where T : class
     {
+        instanceSource.Add(typeof(T), data);
         foreach (var sys in systems)
         {
             var type = sys.GetType();
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach(var field in fields)
+            foreach (var field in fields)
             {
                 if (field.FieldType == typeof(T))
                 {
@@ -178,6 +180,21 @@ public class Fusion : IDisposable
                 }
             }
         }
+    }
+
+    public T Instantiate<T>() where T : class
+    {
+        Type type = typeof(T);
+        var constructors = type.GetConstructors();
+        var constructor = constructors[0];
+        var parameters = constructor.GetParameters();
+        object[] paramInstance = new object[parameters.Length];
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            ParameterInfo parameter = parameters[i];
+            paramInstance[i] = instanceSource[parameter.ParameterType];
+        }
+        return (T)constructor.Invoke(paramInstance);
     }
 
     public void Update()

@@ -1,5 +1,6 @@
-﻿
+﻿using StarDebuCat.Data;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace MilkWangBase;
@@ -46,6 +47,9 @@ public class FrameResource
     public int WarpGateCount;
     public int IdleWorkerCount;
     public int GameLoop;
+
+    public Dictionary<UnitType, int> KillUnitCount;
+    public Dictionary<UnitType, int> LostUnitCount;
 
     public FrameResource Clone()
     {

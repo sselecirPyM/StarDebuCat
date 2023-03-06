@@ -1,6 +1,7 @@
 ﻿using MilkWang1.Micros;
 using MilkWangBase;
 using MilkWangBase.Attributes;
+using MilkWangBase.Core;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -14,7 +15,7 @@ public class BattleSystem1
 {
     AnalysisSystem1 analysisSystem;
     CommandSystem1 commandSystem;
-
+    Fusion fusion;
 
     [XFind("CollectUnits", Alliance.Self, "Army")]
     public List<Unit> armies;
@@ -40,17 +41,32 @@ public class BattleSystem1
     public Vector2 protectPosition;
 
     public Dictionary<UnitType, IMicro> micros;
+    public List<IMicro> micros1;
 
     Random random = new();
     IMicro defaultMicro;
 
     void Initialize()
     {
-        defaultMicro = new DefaultMicro(commandSystem, analysisSystem, this);
-        CycloneMicro cycloneMicro = new CycloneMicro(commandSystem, analysisSystem, this);
+        defaultMicro = fusion.Instantiate<DefaultMicro>();
+        IMicro siegeTankMicro = fusion.Instantiate<SiegeTankMicro>();
+        IMicro ghostMicro = fusion.Instantiate<GhostMicro>();
+
         micros = new Dictionary<UnitType, IMicro>();
-        micros[UnitType.TERRAN_CYCLONE] = cycloneMicro;
-        micros[(UnitType)99999] = defaultMicro;
+        micros[UnitType.TERRAN_CYCLONE] = fusion.Instantiate<CycloneMicro>();
+        micros[UnitType.TERRAN_SIEGETANK] = siegeTankMicro;
+        micros[UnitType.TERRAN_SIEGETANKSIEGED] = siegeTankMicro;
+        micros[UnitType.TERRAN_GHOST] = ghostMicro;
+
+        micros1 = new List<IMicro>();
+        micros1.Add(defaultMicro);
+        foreach (var value in micros.Values)
+        {
+            if (!micros1.Contains(value))
+            {
+                micros1.Add(value);
+            }
+        }
     }
 
     void Update()
@@ -147,12 +163,6 @@ public class BattleSystem1
                 }
             }
 
-            //    enemyChaseCount.TryGetValue(enemy, out var ec1);
-            //if (nearestEnemy != null&&ec1 < 6)
-            //    enemyChaseCount.Increment(nearestEnemy);
-            //if (minLifeEnemy != null && ec1 < 6)
-            //    enemyChaseCount.Increment(minLifeEnemy);
-
             foreach (var friendly in friendNearbys)
             {
                 var friendlyTypeData = analysisSystem.GetUnitTypeData(friendly);
@@ -170,9 +180,9 @@ public class BattleSystem1
             battleUnit.minLifeEnemy = minLifeEnemy;
             battleUnit.enemyAnyInRange = enemyAny.Count;
         }
-        foreach (var micro in micros)
+        foreach (var micro in micros1)
         {
-            micro.Value.NewFrame();
+            micro.NewFrame();
         }
         foreach (var pair in battleUnits)
         {

@@ -10,9 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="BotData\GameData.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="BotData\terran.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
