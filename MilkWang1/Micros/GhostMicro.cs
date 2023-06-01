@@ -18,14 +18,14 @@ public class GhostMicro : IMicro
         CastAbil(battleUnit);
     }
 
-    public void NewFrame()
+    public void Update()
     {
 
     }
 
     bool CastAbil(BattleUnit battleUnit)
     {
-        float range = 10;
+        float range = 10.25f;
         Unit unit = battleUnit.unit;
         bool cast = false;
         if (unit.energy >= 75)

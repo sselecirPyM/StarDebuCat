@@ -1,7 +1,6 @@
 ﻿using SC2APIProtocol;
 using System;
 using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
@@ -63,24 +62,25 @@ public class GameConnection : IDisposable
         });
     }
 
-    public Response QueryPlacements(IEnumerable<RequestQueryBuildingPlacement> placements)
-    {
-        Request requestQuery = new Request();
-        requestQuery.Query = new RequestQuery();
-        requestQuery.Query.Placements.AddRange(placements);
-        var result = Request(requestQuery);
-        return result;
-    }
+    //public Response QueryPlacements(IEnumerable<RequestQueryBuildingPlacement> placements)
+    //{
+    //    Request requestQuery = new Request();
+    //    requestQuery.Query = new RequestQuery();
+    //    requestQuery.Query.Placements.AddRange(placements);
+    //    var result = Request(requestQuery);
+    //    return result;
+    //}
 
-    public Response RequestAction(IEnumerable<SC2APIProtocol.Action> values)
+    public void RequestAction(IEnumerable<SC2APIProtocol.Action> values)
     {
         var actionRequest = new Request();
         actionRequest.Action = new RequestAction();
         actionRequest.Action.Actions.AddRange(values);
+
         if (actionRequest.Action.Actions.Count > 0)
-            return Request(actionRequest);
-        return null;
+            Request(actionRequest);
     }
+
     public ResponseGameInfo RequestGameInfo()
     {
         var gameInfoRequest = new Request
@@ -103,47 +103,68 @@ public class GameConnection : IDisposable
             }
         }).Data;
     }
-    public ResponseStep RequestStep(uint step)
+
+    public ResponseObservation StepObservation()
     {
         var stepRequest = new Request
         {
             Step = new RequestStep
             {
-                Count = step
+                Count = 1
             }
         };
-        return Request(stepRequest).Step;
-    }
-    public ResponseObservation RequestObservation()
-    {
+        Request(stepRequest);
+
         var observationRequest = new Request
         {
             Observation = new RequestObservation()
-
         };
         return Request(observationRequest).Observation;
     }
-    public List<ResponseQueryAvailableAbilities> RequestAvailableAbilities(IReadOnlyList<Data.Unit> units)
-    {
-        var query = new RequestQuery();
-        query.Abilities.EnsureCapacity(units.Count);
-        foreach (var unit in units)
-        {
-            query.Abilities.Add(new RequestQueryAvailableAbilities() { UnitTag = unit.Tag });
-        }
 
-        var request = new Request()
-        {
-            Query = query
-        };
-        return Request(request).Query.Abilities;
-    }
+    //public List<ResponseQueryAvailableAbilities> RequestAvailableAbilities(IReadOnlyList<Data.Unit> units)
+    //{
+    //    var query = new RequestQuery();
+    //    query.Abilities.EnsureCapacity(units.Count);
+    //    foreach (var unit in units)
+    //    {
+    //        query.Abilities.Add(new RequestQueryAvailableAbilities() { UnitTag = unit.Tag });
+    //    }
+
+    //    var request = new Request()
+    //    {
+    //        Query = query
+    //    };
+    //    return Request(request).Query.Abilities;
+    //}
 
     public Response Request(Request request)
     {
         SendMessage(request);
         return ReceiveMessage();
     }
+
+    public Response[] Request(params Request[] requests)
+    {
+        Response[] responses = new Response[requests.Length];
+        for (int i = 0; i < requests.Length; i++)
+        {
+            Request request = requests[i];
+            SendMessage(request);
+        }
+        for (int i = 0; i < requests.Length; i++)
+        {
+            responses[i] = ReceiveMessage();
+        }
+        return responses;
+    }
+
+    public ResponseJoinGame Request(RequestJoinGame request)
+    {
+        SendMessage(new Request { JoinGame = request });
+        return ReceiveMessage().JoinGame;
+    }
+
     public void SendMessage(Request request)
     {
         var sendBuf = ArrayPool<byte>.Shared.Rent(bufferLength);
@@ -157,6 +178,7 @@ public class GameConnection : IDisposable
         }
         ArrayPool<byte>.Shared.Return(sendBuf);
     }
+
     public Response ReceiveMessage()
     {
         var receiveBuf = ArrayPool<byte>.Shared.Rent(bufferLength);
@@ -194,11 +216,6 @@ public class GameConnection : IDisposable
 
     public void NewGame(PlayerSetup player1, PlayerSetup player2, string mapPath)
     {
-        if (!File.Exists(mapPath))
-        {
-            throw new Exception("Unable to locate map: " + mapPath);
-        }
-
         var createGame = new RequestCreateGame
         {
             Realtime = false,

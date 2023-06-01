@@ -43,7 +43,7 @@ public class CycloneMicro : IMicro
     }
 
     List<BattleUnit> removeUnits = new();
-    public void NewFrame()
+    public void Update()
     {
         (lock1, lock2) = (lock2, lock1);
         lock1.Clear();

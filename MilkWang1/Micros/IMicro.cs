@@ -3,5 +3,5 @@
 public interface IMicro
 {
     public void Micro(BattleUnit battleUnit);
-    public void NewFrame();
+    public void Update();
 }

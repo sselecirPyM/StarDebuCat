@@ -31,6 +31,8 @@ public class BattleSystem1
     public QuadTree<Unit> armies1;
     [XFind("QuadTree", Alliance.Enemy)]
     public QuadTree<Unit> enemyUnits1;
+    [XFind("QuadTree", Alliance.Enemy, "Ground")]
+    public QuadTree<Unit> enemyGround;
     [XFind("QuadTree", Alliance.Enemy, "Army")]
     public QuadTree<Unit> enemyArmies1;
 
@@ -38,7 +40,6 @@ public class BattleSystem1
     public List<Unit> outOfSightEnemyArmy;
 
     public Vector2 mainTarget;
-    public Vector2 protectPosition;
 
     public Dictionary<UnitType, IMicro> micros;
     public List<IMicro> micros1;
@@ -105,7 +106,6 @@ public class BattleSystem1
 
     List<Unit> enemyNearbyMix = new();
 
-    List<Unit> enemyNearbyAll = new();
     List<Unit> friendNearbys = new();
     List<Unit> enemyAny = new();
 
@@ -182,7 +182,7 @@ public class BattleSystem1
         }
         foreach (var micro in micros1)
         {
-            micro.NewFrame();
+            micro.Update();
         }
         foreach (var pair in battleUnits)
         {

@@ -46,7 +46,7 @@ public class BuildSystem1
     public List<Unit> geysers;
 
     [XFind("CollectUnits", Alliance.Self, "Building", "Refinery")]
-    public List<Unit> refinery;
+    public List<Unit> _refinery;
 
     [XFind("QuadTree", Alliance.Neutral, "MineralField")]
     public QuadTree<Unit> minerals1;
@@ -220,7 +220,7 @@ public class BuildSystem1
                 Build(worker, refineryType, vespene1);
             }
         }
-        if (workersAvailable.Count > 12 && refinery.TryGetRandom(random, out var _refinery) && TryGetAvailableWorker(out worker))
+        if (workersAvailable.Count > 12 && _refinery.TryGetRandom(random, out var refinery2) && TryGetAvailableWorker(out worker))
         {
             if (worker.TryGetOrder(out var order) && order.TargetUnitTag != 0)
             {
@@ -231,10 +231,10 @@ public class BuildSystem1
                     commandSystem.EnqueueAbility(worker, Abilities.STOP);
                 }
             }
-            if (_refinery.assignedHarvesters < 3 && _refinery.buildProgress == 1 && Vector2.Distance(worker.position, _refinery.position) < 10)
+            if (refinery2.assignedHarvesters < 3 && refinery2.vespeneContents > 0 && refinery2.buildProgress == 1 && Vector2.Distance(worker.position, refinery2.position) < 10)
             {
                 workersAvailable.Remove(worker);
-                commandSystem.OptimiseCommand(worker, Abilities.HARVEST_GATHER, _refinery);
+                commandSystem.OptimiseCommand(worker, Abilities.HARVEST_GATHER, refinery2);
             }
         }
 
@@ -487,7 +487,7 @@ public class BuildSystem1
             UnitType.TERRAN_FACTORYFLYING => UnitType.TERRAN_FACTORYTECHLAB,
             UnitType.TERRAN_STARPORT => UnitType.TERRAN_STARPORTTECHLAB,
             UnitType.TERRAN_STARPORTFLYING => UnitType.TERRAN_STARPORTTECHLAB,
-            _=> UnitType.INVALID
+            _ => UnitType.INVALID
         };
     }
 

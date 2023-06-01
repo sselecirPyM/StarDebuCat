@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MilkWangBase\MilkWangBase.csproj" />
+    <ProjectReference Include="..\StarDebuCat\StarDebuCat.csproj" />
   </ItemGroup>
 
 </Project>

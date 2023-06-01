@@ -3,6 +3,7 @@ using StarDebuCat.Data;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace MilkWangBase.Utility;
 
@@ -42,18 +43,13 @@ public static class TreeExt
 
     public static void BuildQuadTree(this QuadTree<Unit> quadTree, List<Unit> units)
     {
+        quadTree.Clear();
         if (units.Count == 0)
         {
-            quadTree.Clear();
             return;
         }
-        Span<(float, float, Unit)> units1 = new (float, float, Unit)[units.Count];
-        for (int i = 0; i < units.Count; i++)
-        {
-            var unit = units[i];
-            units1[i] = (unit.position.X, unit.position.Y, unit);
-        }
-        quadTree.Initialize(units1);
+
+        quadTree.Initialize(CollectionsMarshal.AsSpan(units), GetUnitPosition);
     }
 
     public static void ClearSearch<T>(this QuadTree<T> quadTree, List<T> unitIds, Vector2 position, float radius)
@@ -62,19 +58,10 @@ public static class TreeExt
         quadTree.Search(unitIds, position, radius);
     }
 
-    //public static void BuildQuadTree<T>(this QuadTree<T> quadTree, List<Vector2> units)
-    //{
-    //    if (units.Count == 0) return;
-    //    Span<float> units1 = stackalloc float[units.Count];
-    //    Span<float> units2 = stackalloc float[units.Count];
-    //    Span<T> units3 = new T[units.Count];
-    //    for (int i = 0; i < units.Count; i++)
-    //    {
-    //        var unit = units[i];
-    //        units1[i] = (unit.X, unit.Y, i);
-    //    }
-    //    quadTree.Initialize(units1);
-    //}
+    static (float, float) GetUnitPosition(Unit unit)
+    {
+        return (unit.position.X, unit.position.Y);
+    }
 
     public static void Group(this QuadTree<int> quadTree, List<Vector2> origin, List<Vector2> result, float maxDistance)
     {

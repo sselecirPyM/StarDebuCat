@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StarDebuCat", "StarDebuCat\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MilkWang1", "MilkWang1\MilkWang1.csproj", "{07A96C2A-3B43-42BD-A28D-0224699A3A49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MilkWangBase", "MilkWangBase\MilkWangBase.csproj", "{71F8196E-842F-44A3-87F8-AF4168ADA7AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MilkWangBase", "MilkWangBase\MilkWangBase.csproj", "{71F8196E-842F-44A3-87F8-AF4168ADA7AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MilkWangP1", "MilkWangP1\MilkWangP1.csproj", "{5272E3EC-CA4C-4B07-AB71-B209699A89E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotVsBot", "BotVsBot\BotVsBot.csproj", "{17C66DAF-74FA-4A0B-82E7-DD680BB68BD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{71F8196E-842F-44A3-87F8-AF4168ADA7AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71F8196E-842F-44A3-87F8-AF4168ADA7AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71F8196E-842F-44A3-87F8-AF4168ADA7AD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5272E3EC-CA4C-4B07-AB71-B209699A89E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5272E3EC-CA4C-4B07-AB71-B209699A89E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5272E3EC-CA4C-4B07-AB71-B209699A89E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5272E3EC-CA4C-4B07-AB71-B209699A89E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17C66DAF-74FA-4A0B-82E7-DD680BB68BD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17C66DAF-74FA-4A0B-82E7-DD680BB68BD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17C66DAF-74FA-4A0B-82E7-DD680BB68BD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17C66DAF-74FA-4A0B-82E7-DD680BB68BD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

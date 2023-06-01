@@ -1,5 +1,4 @@
-﻿using MilkWangBase.Attributes;
-using SC2APIProtocol;
+﻿using SC2APIProtocol;
 using StarDebuCat;
 using System;
 
@@ -7,16 +6,13 @@ namespace MilkWang1;
 
 public class InputSystem1
 {
-    public bool exitProgram = false;
-
-    [Diffusion("ReadyToPlay")]
-    public bool readyToPlay = false;
-
     public int port;
     public int gamePort;
     public string map;
     public Race Race;
-    public bool ladderGame;
+    public bool isLadderGame;
+
+    public string enemyId;
 
     public GameConnection gameConnection;
 
@@ -34,42 +30,23 @@ public class InputSystem1
     public Difficulty ComputerDifficulty = Difficulty.VeryHard;
     public Race ComputerRace = Race.Random;
     #endregion
-    public void Update1()
-    {
-        if (!readyToPlay && status == 0)
-        {
-            StartGame();
-            gameData = gameConnection.RequestGameData();
-            gameInfo = gameConnection.RequestGameInfo();
-        }
-        if (!readyToPlay)
-            return;
-        observation = gameConnection.RequestObservation();
-        status = gameConnection.status;
-        if (status == Status.Ended || status == Status.Quit)
-        {
-            foreach (var result in observation.PlayerResults)
-            {
-                if (result.PlayerId == playerId)
-                {
-                    this.Result = result.Result;
-                    Console.WriteLine("Result: {0}", result.Result);
-                }
-            }
-            readyToPlay = false;
-            exitProgram = true;
-            gameConnection.LeaveGame();
-        }
-        if (!readyToPlay)
-            return;
 
-        gameConnection.RequestStep(1);
+    public void Init2()
+    {
+        StartGame();
+        gameData = gameConnection.RequestGameData();
+        gameInfo = gameConnection.RequestGameInfo();
     }
+
+    //public void Update2()
+    //{
+    //    observation = gameConnection.RequestObservation();
+    //}
 
     public void StartGame()
     {
         gameConnection.Connect("127.0.0.1", gamePort);
-        if (ladderGame)
+        if (isLadderGame)
         {
             JoinGameLadder(Race, port);
         }
@@ -81,44 +58,53 @@ public class InputSystem1
             };
             var player2 = new PlayerSetup
             {
-                Race = Race.Random,
+                Race = ComputerRace,
                 Type = PlayerType.Computer,
                 Difficulty = ComputerDifficulty,
                 AiBuild = ComputerAIBuild
             };
+
+            //var player1 = new PlayerSetup
+            //{
+            //    Type = PlayerType.Participant
+            //};
+            //var player2 = new PlayerSetup
+            //{
+            //    Type = PlayerType.Participant
+            //};
             gameConnection.NewGame(player1, player2, map);
-            JoinGame(Race);
+            JoinGameLocal(Race);
         }
-        readyToPlay = true;
     }
 
     void JoinGameLadder(Race race, int startPort)
     {
-        var joinGame = new RequestJoinGame();
-        joinGame.Race = race;
-
-        joinGame.SharedPort = startPort + 1;
-        joinGame.ServerPorts = new PortSet();
-        joinGame.ServerPorts.GamePort = startPort + 2;
-        joinGame.ServerPorts.BasePort = startPort + 3;
-
-        joinGame.ClientPorts.Add(new PortSet());
-        joinGame.ClientPorts[0].GamePort = startPort + 4;
-        joinGame.ClientPorts[0].BasePort = startPort + 5;
-
-        joinGame.Options = new InterfaceOptions
+        var joinGame = new RequestJoinGame
         {
-            Raw = true,
-            Score = true,
+            Race = race,
+            Options = new InterfaceOptions
+            {
+                Raw = true,
+                Score = true,
+            },
+
+            SharedPort = startPort + 1,
+            ServerPorts = new PortSet
+            {
+                GamePort = startPort + 2,
+                BasePort = startPort + 3
+            },
+            ClientPorts =
+            {
+                new PortSet()
+                {
+                    GamePort = startPort + 4,
+                    BasePort = startPort + 5
+                }
+            }
         };
 
-        var request = new Request
-        {
-            JoinGame = joinGame
-        };
-
-        var response = gameConnection.Request(request);
-        var responseJoinGame = response.JoinGame;
+        var responseJoinGame = gameConnection.Request(joinGame);
         if (responseJoinGame.ShouldSerializeerror())
         {
             throw new Exception(string.Format("{0} {1}", responseJoinGame.error.ToString(), responseJoinGame.ErrorDetails));
@@ -127,26 +113,22 @@ public class InputSystem1
         playerId = (int)responseJoinGame.PlayerId;
     }
 
-    void JoinGame(Race race)
+    void JoinGameLocal(Race race)
     {
-        var request = new Request
+        var joinGame = new RequestJoinGame
         {
-            JoinGame = new RequestJoinGame
+            Race = race,
+            Options = new InterfaceOptions
             {
-                Race = race,
-                Options = new InterfaceOptions
-                {
-                    Raw = true,
-                    Score = true,
-                }
+                Raw = true,
+                Score = true,
             }
         };
-        var response = gameConnection.Request(request);
-        var responseJoinGame = response.JoinGame;
 
+        var responseJoinGame = gameConnection.Request(joinGame);
         if (responseJoinGame.ShouldSerializeerror())
         {
-            throw new Exception(string.Format("Response error \ndetail:{0}", response.JoinGame.ErrorDetails));
+            throw new Exception(string.Format("Response error \ndetail:{0}", responseJoinGame.ErrorDetails));
         }
         playerId = (int)responseJoinGame.PlayerId;
     }

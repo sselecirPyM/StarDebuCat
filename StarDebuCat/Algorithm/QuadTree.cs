@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace StarDebuCat.Algorithm;
 
@@ -131,7 +132,7 @@ public class QuadTree<T>
             node.splitCoord = midX;
 
             Point min1 = new(min.x, min.y);
-            Point max1 = new(midX - 1, max.y);
+            Point max1 = new(midX, max.y);
             node.children1 = Build(l, d, min1, max1, depth);
             Point min2 = new(midX, min.y);
             Point max2 = new(max.x, max.y);
@@ -145,7 +146,7 @@ public class QuadTree<T>
             node.splitCoord = midY;
 
             Point min3 = new(min.x, min.y);
-            Point max3 = new(max.x, midY - 1);
+            Point max3 = new(max.x, midY);
             node.children1 = Build(l, d, min3, max3, depth);
             Point min4 = new(min.x, midY);
             Point max4 = new(max.x, max.y);
@@ -157,27 +158,27 @@ public class QuadTree<T>
         return nodes.Count - 1;
     }
 
-    public void Initialize(Span<float> Xs, Span<float> Ys, Span<T> Ids)
+    public void Initialize(ReadOnlySpan<T> Ids, Func<T, (float, float)> getPosition)
     {
-        int n = Xs.Length;
+        int n = Ids.Length;
         Count = n;
-        //this.points = new (float, float, T)[n];
         if (this.points == null || this.points.Length < n)
         {
             this.points = new (float, float, T)[n + 16];
         }
         for (int i = 0; i < n; i++)
         {
-            this.points[i] = (Xs[i], Ys[i], Ids[i]);
+            (float x, float y) = getPosition(Ids[i]);
+            this.points[i] = (x, y, Ids[i]);
         }
 
-        minX = (Xs[0], Ys[0]);
-        maxX = (Xs[0], Ys[0]);
+        minX = (points[0].Item1, points[0].Item2);
+        maxX = (points[0].Item1, points[0].Item2);
 
         for (int i = 1; i < n; i++)
         {
-            minX = (Math.Min(minX.x, Xs[i]), Math.Min(minX.y, Ys[i]));
-            maxX = (Math.Max(maxX.x, Xs[i]), Math.Max(maxX.y, Ys[i]));
+            minX = (Math.Min(minX.x, points[i].Item1), Math.Min(minX.y, points[i].Item2));
+            maxX = (Math.Max(maxX.x, points[i].Item1), Math.Max(maxX.y, points[i].Item2));
         }
 
 
@@ -185,7 +186,7 @@ public class QuadTree<T>
         Build(0, n, minX, maxX, 0);
     }
 
-    public void Initialize(Span<(float, float, T)> Xs)
+    public void Initialize(ReadOnlySpan<(float, float, T)> Xs)
     {
         int n = Xs.Length;
         Count = n;
@@ -278,8 +279,6 @@ public class QuadTree<T>
         {
             for (int i = node.left; i < node.right; i++)
             {
-                if (Math.Abs(points[i].Item1 - point.x) > radius) continue;
-                if (Math.Abs(points[i].Item2 - point.y) > radius) continue;
                 if (InRange((points[i].Item1, points[i].Item2), point, radius))
                 {
                     unitIds.Add(points[i].Item3);
@@ -321,6 +320,8 @@ public class QuadTree<T>
     public void Clear()
     {
         nodes.Clear();
+        if (points != null)
+            Array.Clear(points);
         //points = null;
         maxX = new Point();
         minX = new Point();

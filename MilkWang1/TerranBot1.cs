@@ -4,8 +4,11 @@ using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
+using static MilkWang1.Util;
+using MilkWang1.Learning;
 
 namespace MilkWang1;
 
@@ -16,6 +19,7 @@ public class TerranBot1
     MarkerSystem1 markerSystem;
     BattleSystem1 battleSystem;
     BuildSystem1 buildSystem;
+    InputSystem1 inputSystem;
 
     Random random = new Random();
 
@@ -55,7 +59,19 @@ public class TerranBot1
 
     public string TestStrategy;
 
-    BotStrategy botStrategy;
+    Dictionary<string, BotStrategy> botStrateydict = new();
+
+    BotStrategy currentStrategy;
+
+    BotStrategyList strategyList;
+    Statistics statistics;
+
+
+    List<Vector2> protectPositions;
+    List<Vector2> enemyProtectPositions;
+    public Vector2 protectPosition;
+
+    int changeTargetCount = 0;
 
     int attackCount;
 
@@ -75,8 +91,11 @@ public class TerranBot1
         float currentTime = gameLoop / 22.4f;
 
         buildSystem.requireUnitCount.Clear();
-
-        foreach (var rail in botStrategy.buildRails)
+        if (gameLoop > 300 * 22.4)
+            buildSystem.randomlyUpgrade = true;
+        else
+            buildSystem.randomlyUpgrade = false;
+        foreach (var rail in currentStrategy.buildRails)
         {
             int[] sequenceStart = rail.buildSequenceStart;
             int findIndex = -1;
@@ -127,9 +146,10 @@ public class TerranBot1
         }
         myUnits1.ClearSearch(friendNearbys, battleSystem.mainTarget, 3);
 
-        bool changeTarget = friendNearbys.Count > 2;
 
-        attackCount = botStrategy.attackCount + Math.Clamp(frame.MineralLost + frame.VespeneLost - frame.MineralKill - frame.VespeneKill, -1000, 1000) / 150;
+        bool changeTarget = friendNearbys.Count > 2 && gameLoop > 6720;
+
+        attackCount = currentStrategy.attackCount + Math.Clamp(frame.TotalLost - frame.TotalKill, -1000, 1000) / 150;
 
         if (gameLoop > 13440)
         {
@@ -142,29 +162,14 @@ public class TerranBot1
         }
         if (changeTarget)
         {
-            if (friendNearbys.TryGetRandom(random, out var randomUnit))
-            {
-                if (!keepers.Any(u => Vector2.Distance(u.position, battleSystem.mainTarget) < 7))
-                {
-                    keepers.Add(randomUnit);
-                    if (!battleSystem.battleUnits.TryGetValue(randomUnit, out var bu))
-                    {
-                        battleSystem.battleUnits[randomUnit] = bu = new BattleUnit(randomUnit);
-                    }
-                    bu.battleType = UnitBattleType.ProtectArea;
-                    bu.protectPosition = battleSystem.mainTarget;
-                }
-                else
-                {
 
-                }
-            }
+            if (changeTargetCount == 0)
+                ChangeTarget0();
             else
-            {
-                Console.WriteLine("Lost target.");
-            }
+                ChangeTarget1();
 
-            battleSystem.mainTarget = FindEnemy();
+            changeTargetCount++;
+            //battleSystem.mainTarget = FindEnemy();
         }
         keepers.RemoveWhere(u => analysisSystem.deadUnits.Contains(u));
 
@@ -186,14 +191,14 @@ public class TerranBot1
             {
                 unit.battleType = UnitBattleType.AttackMain;
             }
-            else if (Vector2.Distance(battleSystem.protectPosition, army.position) > 30)
+            else if (Vector2.Distance(protectPosition, army.position) > 30)
             {
                 unit.battleType = UnitBattleType.Undefined;
             }
             else
             {
                 unit.battleType = UnitBattleType.ProtectArea;
-                unit.protectPosition = battleSystem.protectPosition;
+                unit.protectPosition = protectPosition;
             }
         }
     }
@@ -232,24 +237,93 @@ public class TerranBot1
         return target;
     }
 
+    void ChangeTarget0()
+    {
+        battleSystem.mainTarget = enemyProtectPositions[0];
+    }
+
+    void ChangeTarget1()
+    {
+        if (friendNearbys.TryGetRandom(random, out var randomUnit))
+        {
+            if (!keepers.Any(u => Vector2.Distance(u.position, battleSystem.mainTarget) < 7))
+            {
+                keepers.Add(randomUnit);
+                if (!battleSystem.battleUnits.TryGetValue(randomUnit, out var bu))
+                {
+                    battleSystem.battleUnits[randomUnit] = bu = new BattleUnit(randomUnit);
+                }
+                bu.battleType = UnitBattleType.ProtectArea;
+                bu.protectPosition = battleSystem.mainTarget;
+            }
+            else
+            {
+
+            }
+        }
+        else
+        {
+            Console.WriteLine("Lost target.");
+        }
+        battleSystem.mainTarget = FindEnemy();
+    }
 
     void PostInitialize()
     {
         initialized = true;
         var commandCenterPosition = commandCenters[0].position;
-        if (analysisSystem.patioPointsMerged.Count > 0)
-            battleSystem.protectPosition = analysisSystem.patioPointsMerged.Nearest(commandCenterPosition);
-        else
-            battleSystem.protectPosition = commandCenterPosition;
+        var enemyStartPosition = analysisSystem.StartLocations[0];
 
-        if (TestStrategy != null)
-            botStrategy = BotData.botStrategies.First(u => u.Name == TestStrategy);
+        protectPositions = new List<Vector2>(analysisSystem.patioPointsMerged);
+        protectPositions.Sort((a, b) => Vector2.Distance(a, commandCenterPosition).CompareTo(Vector2.Distance(b, commandCenterPosition)));
+
+        if (protectPositions.Count > 0)
+            protectPosition = protectPositions[0];
         else
-            botStrategy = BotData.botStrategies[0];
+            protectPosition = commandCenterPosition;
+
+        enemyProtectPositions = new List<Vector2>(analysisSystem.patioPointsMerged);
+        enemyProtectPositions.Sort((a, b) => Vector2.Distance(a, enemyStartPosition).CompareTo(Vector2.Distance(b, enemyStartPosition)));
+        battleSystem.mainTarget = enemyProtectPositions[1];
+
+        //if (TestStrategy != null)
+        //    botStrategy = BotData.botStrategies.First(u => u.Name == TestStrategy);
+        //else
+        //    botStrategy = BotData.botStrategies[0];
+
+        statistics = Statistics.Load();
+
+        DirectoryInfo directoryInfo = new DirectoryInfo("Strategy");
+        foreach (var file in directoryInfo.GetFiles())
+        {
+            switch (file.Name)
+            {
+                case "strategy_list.json":
+                    strategyList = GetData<BotStrategyList>(file.FullName);
+                    break;
+                default:
+                    var strategy = GetData<BotStrategy>(file.FullName);
+                    botStrateydict.Add(strategy.Name, strategy);
+                    break;
+            }
+        }
+        string strategyName = strategyList.strategies[random.Next(0, strategyList.strategies.Count)];
+        currentStrategy = botStrateydict[strategyName];
+        Console.WriteLine(currentStrategy.Name);
     }
 
     void EnemyFindInit()
     {
         enemyFindInit = true;
+    }
+
+    public void OnExit()
+    {
+        if (analysisSystem.enemyRace != 0)
+        {
+            statistics.LogResult((SC2APIProtocol.Race)analysisSystem.enemyRace, inputSystem.Result, inputSystem.enemyId, currentStrategy.Name);
+
+            statistics.Save();
+        }
     }
 }

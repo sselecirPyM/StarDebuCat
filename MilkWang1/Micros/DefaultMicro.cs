@@ -26,7 +26,7 @@ public class DefaultMicro : IMicro
             MicroAttack(battleUnit);
     }
 
-    public void NewFrame()
+    public void Update()
     {
 
     }

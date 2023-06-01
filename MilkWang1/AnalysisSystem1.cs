@@ -191,6 +191,12 @@ public class AnalysisSystem1
                     patioPoints.Add(new(d % patio.Width + 0.5f, d / patio.Width + 0.5f));
                 }
         patio.Group(patioPointsMerged, 4);
+
+        for (int i = 0; i < patioPointsMerged.Count; i++)
+        {
+            patioPointsMerged[i] = MovePositionToHigher(patioPointsMerged[i]);
+            patioPointsMerged[i] = MovePositionToHigher(patioPointsMerged[i]);
+        }
         #endregion patio
     }
     #endregion
@@ -324,6 +330,27 @@ public class AnalysisSystem1
 
         visable = new(rawData.MapState.Visibility);
 
+        if (enemyRace == Race.NoRace)
+        {
+            foreach (var unit in units)
+            {
+                if (unit.alliance == Alliance.Enemy)
+                {
+                    if (DData.Terran.Contains(unit.type))
+                    {
+                        enemyRace = Race.Terran;
+                    }
+                    if (DData.Protoss.Contains(unit.type))
+                    {
+                        enemyRace = Race.Protoss;
+                    }
+                    if (DData.Zerg.Contains(unit.type))
+                    {
+                        enemyRace = Race.Zerg;
+                    }
+                }
+            }
+        }
     }
 
     void CountingDeadUnits()
@@ -465,10 +492,12 @@ public class AnalysisSystem1
                     case "Army" when GameData.armies.Contains(unit.type):
                     case "CommandCenter" when GameData.commandCenters.Contains(unit.type):
                     case "Building" when GameData.building.Contains(unit.type):
-                    case "OutOfSight" when visable.Query(unit.position) != 2:
-                    case "BuildComplete" when unit.buildProgress == 1:
                     case "Worker" when GameData.workers.Contains(unit.type):
                     case "Refinery" when GameData.refineries.Contains(unit.type):
+                    case "Ground" when !GameData.flying.Contains(unit.type):
+                    case "Flying" when !GameData.flying.Contains(unit.type):
+                    case "OutOfSight" when visable.Query(unit.position) != 2:
+                    case "BuildComplete" when unit.buildProgress == 1:
                     case "Factory" when Factories.Contains(unit.type):
                         continue;
                     default:
@@ -528,5 +557,34 @@ public class AnalysisSystem1
     public SC2APIProtocol.UnitTypeData GetUnitTypeData(UnitType unitType)
     {
         return unitTypeDatas[(int)unitType];
+    }
+
+
+
+
+    Vector2 MovePositionToHigher(Vector2 position)
+    {
+        byte heightBase = terrainHeight.Query(position);
+        Vector2 adjustPosition = Vector2.Zero;
+        for (int i = -1; i < 2; i++)
+        {
+            for (int j = -1; j < 2; j++)
+            {
+                if (i == 0 && j == 0)
+                    continue;
+                byte height = terrainHeight.Query(position + new Vector2(i, j));
+                if (heightBase > height)
+                {
+                    adjustPosition -= new Vector2(i, j);
+                }
+                else if (heightBase < height)
+                {
+                    adjustPosition += new Vector2(i, j);
+                }
+            }
+        }
+        position.X += Math.Sign(adjustPosition.X);
+        position.Y += Math.Sign(adjustPosition.Y);
+        return position;
     }
 }

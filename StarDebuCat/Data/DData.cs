@@ -86,6 +86,7 @@ public static class DData
         UnitType.PROTOSS_PHOTONCANNON,
         UnitType.TERRAN_BANSHEE,
         UnitType.TERRAN_BATTLECRUISER,
+        UnitType.TERRAN_BUNKER,
         UnitType.TERRAN_CYCLONE,
         UnitType.TERRAN_GHOST,
         UnitType.TERRAN_HELLION,
@@ -369,6 +370,35 @@ public static class DData
         UnitType.ZERG_ULTRALISKCAVERN,
         UnitType.ZERG_EXTRACTOR,
         UnitType.ZERG_EXTRACTOR_RICH,
+    };
+
+    public static HashSet<UnitType> Flying { get; } = new()
+    {
+        UnitType.TERRAN_BARRACKSFLYING,
+        UnitType.TERRAN_FACTORYFLYING,
+        UnitType.TERRAN_STARPORTFLYING,
+        UnitType.TERRAN_COMMANDCENTERFLYING,
+        UnitType.TERRAN_ORBITALCOMMANDFLYING,
+        UnitType.TERRAN_VIKINGFIGHTER,
+        UnitType.TERRAN_MEDIVAC,
+        UnitType.TERRAN_BANSHEE,
+        UnitType.TERRAN_RAVEN,
+        UnitType.TERRAN_BATTLECRUISER,
+        UnitType.PROTOSS_OBSERVER,
+        UnitType.PROTOSS_COLOSSUS,
+        UnitType.PROTOSS_PHOENIX,
+        UnitType.PROTOSS_ORACLE,
+        UnitType.PROTOSS_VOIDRAY,
+        UnitType.PROTOSS_TEMPEST,
+        UnitType.PROTOSS_CARRIER,
+        UnitType.ZERG_OVERLORD,
+        UnitType.ZERG_OVERSEER,
+        UnitType.ZERG_OVERLORDCOCOON,
+        UnitType.ZERG_MUTALISK,
+        UnitType.ZERG_BROODLORD,
+        UnitType.ZERG_CORRUPTOR,
+        UnitType.ZERG_BROODLORDCOCOON,
+        UnitType.ZERG_LOCUSTMPFLYING,
     };
 
     public static HashSet<UnitType> Workers { get; } = new()

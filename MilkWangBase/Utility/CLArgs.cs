@@ -13,6 +13,8 @@ public class CLArgs
     public string LadderServer { get; set; }
     [Option('m', "Map")]
     public string Map { get; set; }
+    [Option("MapDir")]
+    public string MapDir { get; set; }
     [Option("Debug")]
     public bool Debug { get; set; }
 
@@ -22,7 +24,7 @@ public class CLArgs
     public Difficulty ComputerDifficulty { get; set; } = Difficulty.VeryHard;
 
     [Option("OpponentId")]
-    public string OpponentId { get; set; }
+    public string OpponentId { get; set; } = "LocalPlayer";
 
     [Option("Learning")]
     public bool Learning { get; set; }

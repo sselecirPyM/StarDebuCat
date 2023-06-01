@@ -26,7 +26,7 @@ public class SiegeTankMicro : IMicro
         }
     }
 
-    public void NewFrame()
+    public void Update()
     {
 
     }
@@ -40,7 +40,7 @@ public class SiegeTankMicro : IMicro
         bool enemyInRange = hasEnemy && battleUnit.nearestDistance < range;
 
         cast |= !noEnemy && enemyInRange;
-        cast |= noEnemy && !enemyInRange && !battleSystem.enemyUnits1.HitTest(unit.position, range);
+        cast |= noEnemy && !enemyInRange && !battleSystem.enemyGround.HitTest(unit.position, range);
 
         if (cast)
         {

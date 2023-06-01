@@ -40,9 +40,11 @@ public class FrameResource
 
     public int MineralLost;
     public int VespeneLost;
+    public int TotalLost => MineralLost + VespeneLost;
 
     public int MineralKill;
     public int VespeneKill;
+    public int TotalKill => MineralKill + VespeneKill;
 
     public int WarpGateCount;
     public int IdleWorkerCount;
