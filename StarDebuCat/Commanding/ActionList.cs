@@ -63,57 +63,72 @@ public class ActionList
     {
         if (unit == null)
             return;
-        //action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
-        action.ActionRaw.UnitCommand.UnitTags = new ulong[] { unit.Tag };
-        actions.Add(action);
+        UnitsAction(action, unit.Tag);
     }
 
     public void UnitsAction(Action action, ulong unit)
     {
-        //action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
         action.ActionRaw.UnitCommand.UnitTags = new ulong[] { unit };
         actions.Add(action);
     }
 
-    public void UnitsAutocastAction(Action action, Unit unit)
+    public void UnitsAutocastAction(Abilities ability, Unit unit)
     {
-        //action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
-        action.ActionRaw.ToggleAutocast.UnitTags = new ulong[] { unit.Tag };
-        actions.Add(action);
+        if (unit == null)
+            return;
+        UnitsAutocastAction(ability, unit.Tag);
     }
 
-    public void UnitsAutocastAction(Action action, ulong unit)
+    public void UnitsAutocastAction(Abilities ability, ulong unit)
     {
-        //action.ActionRaw.UnitCommand.UnitTags.Add(unit.Tag);
+        var action = AutoCastCommand(ability);
         action.ActionRaw.ToggleAutocast.UnitTags = new ulong[] { unit };
         actions.Add(action);
     }
 
-    public static Action Command(Abilities ability)
+    static Action AutoCastCommand(Abilities ability)
     {
-        var action = new Action();
-        action.ActionRaw = new ActionRaw();
-        action.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-        action.ActionRaw.UnitCommand.AbilityId = (int)ability;
+        var action = new Action
+        {
+            ActionRaw = new ActionRaw
+            {
+                ToggleAutocast = new ActionRawToggleAutocast()
+                {
+                    AbilityId = (int)ability
+                }
+            }
+        };
         return action;
     }
 
-    public static Action AutoCastCommand(Abilities ability)
+    public static Action Command(Abilities ability)
     {
-        var action = new Action();
-        action.ActionRaw = new ActionRaw();
-        action.ActionRaw.ToggleAutocast = new ActionRawToggleAutocast();
-        action.ActionRaw.ToggleAutocast.AbilityId=(int)ability;
+        var action = new Action
+        {
+            ActionRaw = new ActionRaw
+            {
+                UnitCommand = new ActionRawUnitCommand()
+                {
+                    AbilityId = (int)ability
+                }
+            }
+        };
         return action;
     }
 
     public static Action Command(Abilities ability, ulong target)
     {
-        var action = new Action();
-        action.ActionRaw = new ActionRaw();
-        action.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-        action.ActionRaw.UnitCommand.AbilityId = (int)ability;
-        action.ActionRaw.UnitCommand.TargetUnitTag = target;
+        var action = new Action
+        {
+            ActionRaw = new ActionRaw
+            {
+                UnitCommand = new ActionRawUnitCommand
+                {
+                    AbilityId = (int)ability,
+                    TargetUnitTag = target
+                }
+            }
+        };
         return action;
     }
 

@@ -48,6 +48,9 @@ public class BuildSystem1
     [XFind("CollectUnits", Alliance.Self, "Building", "Refinery")]
     public List<Unit> _refinery;
 
+    [XFind("QuadTree", Alliance.Enemy, "Army")]
+    public QuadTree<Unit> enemyArmies1;
+
     [XFind("QuadTree", Alliance.Neutral, "MineralField")]
     public QuadTree<Unit> minerals1;
 
@@ -194,6 +197,14 @@ public class BuildSystem1
                 {
                     resourceRemain.mineral -= (int)analysisSystem.GetUnitTypeData(commandCenter).MineralCost;
                 }
+            }
+        }
+
+        foreach (var needWorker in predicationSystem.needWorkers)
+        {
+            if (!enemyArmies1.HitTest(needWorker.position, 6) && TryGetAvailableWorker(out worker))
+            {
+                commandSystem.EnqueueAbility(worker, Abilities.SMART, needWorker);
             }
         }
 
@@ -569,7 +580,7 @@ public class BuildSystem1
         return result;
     }
 
-    bool TryGetAvailableWorker(out Unit worker)
+    public bool TryGetAvailableWorker(out Unit worker)
     {
         if (workersAvailable.Count == 0)
         {

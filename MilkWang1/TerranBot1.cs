@@ -20,6 +20,7 @@ public class TerranBot1
     BattleSystem1 battleSystem;
     BuildSystem1 buildSystem;
     InputSystem1 inputSystem;
+    CommandSystem1 commandSystem;
 
     Random random = new Random();
 
@@ -71,11 +72,17 @@ public class TerranBot1
     List<Vector2> enemyProtectPositions;
     public Vector2 protectPosition;
 
+    Vector2 commandCenterPosition;
+
     int changeTargetCount = 0;
 
     int attackCount;
 
     int attackTimer = 0;
+
+    bool scvAttack;
+    bool scvAttack1;
+
     void Update()
     {
 
@@ -91,20 +98,43 @@ public class TerranBot1
         float currentTime = gameLoop / 22.4f;
 
         buildSystem.requireUnitCount.Clear();
-        if (gameLoop > 300 * 22.4)
-            buildSystem.randomlyUpgrade = true;
-        else
-            buildSystem.randomlyUpgrade = false;
+
+        buildSystem.randomlyUpgrade = gameLoop > 300 * 22.4;
+        battleSystem.defaultMicro.AllowPush = gameLoop > 240 * 22.4;
+
+        if (gameLoop < 22.4 * 125 && enemyArmy.Count > 1 && !scvAttack
+            && Vector2.Distance(commandCenterPosition, enemyArmy[0].position) < 30)
+        {
+            scvAttack = true;
+            for (int i = 0; i < 5; i++)
+            {
+                if (buildSystem.TryGetAvailableWorker(out var scv))
+                {
+                    commandSystem.EnqueueAbility(scv, Abilities.ATTACK_ATTACK, enemyArmy[0].position);
+                    commandSystem.ToggleAutocastAbility(scv, Abilities.EFFECT_REPAIR_SCV);
+                }
+            }
+        }
+        if (gameLoop < 22.4 * 125 && enemyUnits.Count > 1 && !scvAttack1
+            && Vector2.Distance(commandCenterPosition, enemyUnits[0].position) < 30)
+        {
+            scvAttack1 = true;
+            for (int i = 0; i < 1; i++)
+            {
+                if (buildSystem.TryGetAvailableWorker(out var scv))
+                {
+                    commandSystem.EnqueueAbility(scv, Abilities.ATTACK, enemyUnits[0]);
+                    commandSystem.ToggleAutocastAbility(scv, Abilities.EFFECT_REPAIR_SCV);
+                }
+            }
+        }
+
         foreach (var rail in currentStrategy.buildRails)
         {
             int[] sequenceStart = rail.buildSequenceStart;
             int findIndex = -1;
             for (int i = sequenceStart.Length - 1; i >= 0; i--)
             {
-                //if (previousTime <= sequenceStart[i] && currentTime > sequenceStart[i])
-                //{
-                //    findIndex = i;
-                //}
                 if (currentTime > sequenceStart[i])
                 {
                     findIndex = i;
@@ -136,8 +166,6 @@ public class TerranBot1
         //    }
         //}
 
-        //buildSystem.requireUnitCount.TryGetValue(UnitType.TERRAN_COMMANDCENTER, out var commandCenterCount);
-        //buildSystem.requireUnitCount[UnitType.TERRAN_COMMANDCENTER] = commandCenterCount - predicationSystem.GetPredictTotal(UnitType.TERRAN_ORBITALCOMMAND);
         var unitDictionary = analysisSystem.unitDictionary;
 
         if (battleSystem.mainTarget == Vector2.Zero)
@@ -147,9 +175,9 @@ public class TerranBot1
         myUnits1.ClearSearch(friendNearbys, battleSystem.mainTarget, 3);
 
 
-        bool changeTarget = friendNearbys.Count > 2 && gameLoop > 6720;
+        bool changeTarget = friendNearbys.Count > 2 && gameLoop > 6272;
 
-        attackCount = currentStrategy.attackCount + Math.Clamp(frame.TotalLost - frame.TotalKill, -1000, 1000) / 150;
+        attackCount = currentStrategy.attackCount + Math.Clamp(frame.TotalLost - frame.TotalKill, -1200, 1000) / 150;
 
         if (gameLoop > 13440)
         {
@@ -162,11 +190,15 @@ public class TerranBot1
         }
         if (changeTarget)
         {
-
-            if (changeTargetCount == 0)
-                ChangeTarget0();
-            else
-                ChangeTarget1();
+            switch (changeTargetCount)
+            {
+                case 0:
+                    ChangeTarget0();
+                    break;
+                default:
+                    ChangeTarget1();
+                    break;
+            }
 
             changeTargetCount++;
             //battleSystem.mainTarget = FindEnemy();
@@ -271,7 +303,7 @@ public class TerranBot1
     void PostInitialize()
     {
         initialized = true;
-        var commandCenterPosition = commandCenters[0].position;
+        commandCenterPosition = commandCenters[0].position;
         var enemyStartPosition = analysisSystem.StartLocations[0];
 
         protectPositions = new List<Vector2>(analysisSystem.patioPointsMerged);

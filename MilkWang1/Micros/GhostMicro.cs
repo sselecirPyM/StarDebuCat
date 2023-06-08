@@ -39,7 +39,7 @@ public class GhostMicro : IMicro
             if (cast)
             {
                 commandSystem.OptimiseCommand(unit, Abilities.EFFECT_EMP, battleUnit.nearestEnemy.position);
-                battleUnit.command = true;
+                battleUnit.commanding = true;
             }
         }
 

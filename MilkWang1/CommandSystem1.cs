@@ -20,6 +20,8 @@ public class CommandSystem1
 
     }
 
+    float maxOptimiseDistance = 2e-1f;
+
     public void EnqueueChat(string message, bool broadcast) => actionList.EnqueueChat(message, broadcast);
 
     public void OptimiseCommand(Unit unit, Abilities abilities, Vector2 target)
@@ -40,7 +42,7 @@ public class CommandSystem1
             {
                 var pos = order.TargetWorldSpacePos;
                 var pos1 = new Vector2(pos.X, pos.Y);
-                if (Vector2.DistanceSquared(target, pos1) < 1e-1f)
+                if (Vector2.DistanceSquared(target, pos1) < maxOptimiseDistance)
                 {
                     return;
                 }
@@ -49,7 +51,7 @@ public class CommandSystem1
         }
         else if (unit.orders.Count == 0)
         {
-            if (Vector2.DistanceSquared(target, unit.position) < 1e-1f)
+            if (Vector2.DistanceSquared(target, unit.position) < maxOptimiseDistance)
             {
                 return;
             }
@@ -97,8 +99,7 @@ public class CommandSystem1
 
     public void ToggleAutocastAbility(Unit unit, Abilities abilities)
     {
-        var cmd = ActionList.AutoCastCommand(abilities);
-        actionList.UnitsAutocastAction(cmd, unit);
+        actionList.UnitsAutocastAction(abilities, unit);
     }
 
     public void EnqueueAbility(Unit unit, Abilities abilities) => actionList.EnqueueAbility(unit, abilities);

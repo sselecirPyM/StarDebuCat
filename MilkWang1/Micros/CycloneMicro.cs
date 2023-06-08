@@ -127,7 +127,7 @@ public class CycloneMicro : IMicro
         {
             battleUnit.stateCode = 1;
         }
-        battleUnit.command = true;
+        battleUnit.commanding = true;
 
     }
 
@@ -135,7 +135,7 @@ public class CycloneMicro : IMicro
     {
         if (target != null)
             commandSystem.OptimiseCommand(source.unit, Abilities.EFFECT_LOCKON, target);
-        source.command = true;
+        source.commanding = true;
         lock1[source] = target.Tag;
     }
 }

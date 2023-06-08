@@ -11,26 +11,27 @@
         },
         {
           "TERRAN_BARRACKS": 5,
-          "TERRAN_FACTORY": 2,
-          "TERRAN_FACTORYTECHLAB": 2,
-          "TERRAN_BARRACKSTECHLAB": 0,
+          "TERRAN_FACTORY": 1,
+          "TERRAN_FACTORYTECHLAB": 1,
+          "TERRAN_BARRACKSTECHLAB": 1,
           "TERRAN_MARINE": 10,
+          "TERRAN_MARAUDER": 5,
           "TERRAN_SIEGETANK": 8
         },
         {
           "TERRAN_BARRACKS": 4,
           "TERRAN_FACTORY": 2,
           "TERRAN_FACTORYTECHLAB": 2,
-          "TERRAN_BARRACKSTECHLAB": 1,
+          "TERRAN_BARRACKSTECHLAB": 2,
           "TERRAN_MARINE": 25,
-          "TERRAN_MARAUDER": 5,
+          "TERRAN_MARAUDER": 10,
           "TERRAN_SIEGETANK": 8
         },
         {
           "TERRAN_BARRACKS": 3,
           "TERRAN_FACTORY": 2,
           "TERRAN_BARRACKSTECHLAB": 2,
-          "TERRAN_MARINE": 25,
+          "TERRAN_MARINE": 20,
           "TERRAN_MARAUDER": 8,
           "TERRAN_HELLION": 0,
           "TERRAN_SIEGETANK": 8,
@@ -142,10 +143,10 @@
       "buildSequenceStart": [
         0,
         250,
-        440,
-        530,
-        620,
-        700
+        430,
+        560,
+        670,
+        800
       ]
     }
   ]

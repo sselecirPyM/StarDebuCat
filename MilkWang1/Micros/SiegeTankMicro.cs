@@ -45,7 +45,7 @@ public class SiegeTankMicro : IMicro
         if (cast)
         {
             commandSystem.OptimiseCommand(unit, ability);
-            battleUnit.command = true;
+            battleUnit.commanding = true;
         }
 
         return cast;

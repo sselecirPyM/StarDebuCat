@@ -4,6 +4,7 @@ using MilkWangBase.Utility;
 using StarDebuCat.Data;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace MilkWang1;
 
@@ -14,6 +15,8 @@ public class PredicationSystem1
     [XFind("CollectUnits", Alliance.Self)]
     public List<Unit> myUnits;
 
+
+    public float foodPrediction20s;
 
     public Dictionary<UnitType, int> buildCompletedUnitTypes = new();
     public Dictionary<UnitType, int> buildNotCompletedUnitTypes = new();
@@ -28,7 +31,7 @@ public class PredicationSystem1
 
     public List<(UnitType, float)> vBuildNotCompleted = new();
 
-    public float foodPrediction20s;
+    public List<Unit> needWorkers = new();
 
     SC2Resource predictResource = new();
 
@@ -48,6 +51,7 @@ public class PredicationSystem1
         predicatedEquivalentUnitTypes.Clear();
         vBuildNotCompleted.Clear();
         canBuildUnits.Clear();
+        needWorkers.Clear();
     }
 
     public void Update()
@@ -86,6 +90,10 @@ public class PredicationSystem1
             {
                 vBuildNotCompleted.Add((unit.type, timeRemain));
             }
+            else
+            {
+                needWorkers.Add(unit);
+            }
         }
 
         foreach (var builder in myUnits)
@@ -101,6 +109,21 @@ public class PredicationSystem1
                 predicatedUnitTypes.Increment(predicatedUnitType);
                 float timeRemain = buildUnit.BuildTime * (1 - order.Progress);
                 vBuildNotCompleted.Add((predicatedUnitType, timeRemain));
+                if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetWorldSpacePos && needWorkers.Count > 0)
+                {
+                    needWorkers.RemoveAll(u => Vector2.Distance(u.position, new Vector2(order.TargetWorldSpacePos.X, order.TargetWorldSpacePos.Y)) < 0.5f);
+                }
+                else if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetUnitTag && needWorkers.Count > 0)
+                {
+                    if (analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var targetUnit))
+                    {
+                        needWorkers.RemoveAll(u => Vector2.Distance(u.position, targetUnit.position) < 0.5f);
+                    }
+                }
+                else if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None && needWorkers.Count > 0)
+                {
+
+                }
             }
             else if (GameData.morphToUnit.TryGetValue(abilities, out var unitType))
             {

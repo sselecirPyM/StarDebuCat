@@ -23,7 +23,7 @@ public class AnalysisSystem1
     public Race race;
     public Race enemyRace;
 
-    public List<float> fireRanges;
+    private List<float> fireRanges;
     public List<SC2APIProtocol.UnitTypeData> unitTypeDatas;
     public List<SC2APIProtocol.AbilityData> abilitiesData;
     public List<SC2APIProtocol.UpgradeData> upgradeDatas;
@@ -170,7 +170,7 @@ public class AnalysisSystem1
         StartLocations.Clear();
         foreach (var startLocation in startRaw.StartLocations)
         {
-            StartLocations.Add(startLocation);
+            StartLocations.Add(new Vector2(startLocation.X, startLocation.Y));
         }
         buildPoints.Clear();
 
@@ -179,8 +179,12 @@ public class AnalysisSystem1
         build = new(startRaw.PlacementGrid);
         terrainHeight = new(startRaw.TerrainHeight);
 
-        #region patio
-        patio = new(startRaw.PathingGrid);
+        Patio(pathing);
+    }
+
+    void Patio(Image pathingGrid)
+    {
+        patio = new(pathingGrid);
         for (int i = 0; i < pathing.Data.Length; i++)
             patio.Data[i] = (byte)(pathing.Data[i] & ~build.Data[i]);
         for (int i = 0; i < patio.Data.Length; i++)
@@ -197,7 +201,7 @@ public class AnalysisSystem1
             patioPointsMerged[i] = MovePositionToHigher(patioPointsMerged[i]);
             patioPointsMerged[i] = MovePositionToHigher(patioPointsMerged[i]);
         }
-        #endregion patio
+
     }
     #endregion
     void CollectScores()
@@ -321,7 +325,7 @@ public class AnalysisSystem1
             foreach (var point in effect.Pos)
             {
                 var effect1 = new PointEffect();
-                effect1.Update(effect.EffectId, point);
+                effect1.Update(effect.EffectId, new Vector2(point.X, point.Y));
                 effects.Add(effect1);
             }
         }
@@ -559,7 +563,10 @@ public class AnalysisSystem1
         return unitTypeDatas[(int)unitType];
     }
 
-
+    public float GetFireRange(UnitType unitType)
+    {
+        return fireRanges[(int)unitType];
+    }
 
 
     Vector2 MovePositionToHigher(Vector2 position)

@@ -45,7 +45,7 @@ public class BattleSystem1
     public List<IMicro> micros1;
 
     Random random = new();
-    IMicro defaultMicro;
+    public DefaultMicro defaultMicro;
 
     void Initialize()
     {
@@ -86,9 +86,9 @@ public class BattleSystem1
 
         foreach (var pair in battleUnits)
         {
-            if (pair.Value.command)
+            if (pair.Value.commanding)
             {
-                pair.Value.command = false;
+                pair.Value.commanding = false;
                 continue;
             }
             switch (pair.Value.battleType)
@@ -105,6 +105,7 @@ public class BattleSystem1
     }
 
     List<Unit> enemyNearbyMix = new();
+    List<Unit> enemyNearbyWorker = new();
 
     List<Unit> friendNearbys = new();
     List<Unit> enemyAny = new();
@@ -115,7 +116,7 @@ public class BattleSystem1
         enemyChaseCount.Clear();
         foreach (var unit in armies)
         {
-            float fireRange = analysisSystem.fireRanges[(int)unit.type];
+            float fireRange = analysisSystem.GetFireRange(unit.type);
 
             var unitPosition = unit.position;
             enemyArmies1.ClearSearch(enemyNearbyMix, unitPosition, 15f);
@@ -123,6 +124,10 @@ public class BattleSystem1
             armies1.ClearSearch(friendNearbys, unitPosition, 5.5f);
 
             enemyUnits1.ClearSearch(enemyAny, unitPosition, fireRange + 1.5f);
+
+            enemyUnits1.ClearSearch(enemyNearbyWorker, unitPosition, 6.5f);
+            enemyNearbyWorker.RemoveAll(u => !analysisSystem.GameData.workers.Contains(u.type));
+            enemyNearbyMix.AddRange(enemyNearbyWorker);
 
             float inEnemyRange = 0;
             float enemyInRange = 0;
@@ -136,7 +141,7 @@ public class BattleSystem1
             foreach (var enemy in enemyNearbyMix)
             {
                 var enemyTypeData = analysisSystem.GetUnitTypeData(enemy);
-                float enemyRange = analysisSystem.fireRanges[(int)enemy.type];
+                float enemyRange = analysisSystem.GetFireRange(enemy.type);
                 float dummyEnemyRange = Math.Max(enemyRange, 3) + 2.5f;
                 float fireRange1 = Math.Max(fireRange, 4);
                 float distance = Math.Max(Vector2.Distance(unitPosition, enemy.position) - unit.radius - enemy.radius, 0);
@@ -194,9 +199,9 @@ public class BattleSystem1
         foreach (var unit in armies)
         {
             var battleUnit = battleUnits[unit];
-            if (battleUnit.command)
+            if (battleUnit.commanding)
                 continue;
-            float fireRange = analysisSystem.fireRanges[(int)unit.type];
+            float fireRange = analysisSystem.GetFireRange(unit.type);
 
             if (battleUnit.inEnemyRangeFood < battleUnit.friendlyNearByFood * 0.7f)
             {

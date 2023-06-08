@@ -32,7 +32,7 @@ public class BattleUnit
     public MicroStrategy microStrategy;
     public int stateCode;
 
-    public bool command;
+    public bool commanding;
 
 
     public Unit unit;
