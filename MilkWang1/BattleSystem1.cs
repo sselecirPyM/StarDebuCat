@@ -1,4 +1,5 @@
-﻿using MilkWang1.Micros;
+﻿using MilkWang1.Attributes;
+using MilkWang1.Micros;
 using MilkWangBase;
 using MilkWangBase.Attributes;
 using MilkWangBase.Core;
@@ -17,7 +18,7 @@ public class BattleSystem1
     CommandSystem1 commandSystem;
     Fusion fusion;
 
-    [XFind("CollectUnits", Alliance.Self, "Army")]
+    [Units(Alliance.Self, "Army")]
     public List<Unit> armies;
 
     public BotData BotData;
@@ -25,18 +26,18 @@ public class BattleSystem1
 
     public Dictionary<Unit, BattleUnit> battleUnits = new();
 
-    [XFind("QuadTree", Alliance.Self)]
+    [QuadTree(Alliance.Self)]
     public QuadTree<Unit> myUnits1;
-    [XFind("QuadTree", Alliance.Self, "Army")]
+    [QuadTree(Alliance.Self, "Army")]
     public QuadTree<Unit> armies1;
-    [XFind("QuadTree", Alliance.Enemy)]
+    [QuadTree(Alliance.Enemy)]
     public QuadTree<Unit> enemyUnits1;
-    [XFind("QuadTree", Alliance.Enemy, "Ground")]
+    [QuadTree(Alliance.Enemy, "Ground")]
     public QuadTree<Unit> enemyGround;
-    [XFind("QuadTree", Alliance.Enemy, "Army")]
+    [QuadTree(Alliance.Enemy, "Army")]
     public QuadTree<Unit> enemyArmies1;
 
-    [XFind("CollectUnits", Alliance.Enemy, "Army", "OutOfSight")]
+    [Units(Alliance.Enemy, "Army", "OutOfSight")]
     public List<Unit> outOfSightEnemyArmy;
 
     public Vector2 mainTarget;
@@ -154,10 +155,15 @@ public class BattleSystem1
 
                 if (distance < enemyRange + 2.5f)
                     enemyMaxRange = Math.Max(enemyMaxRange, enemyRange);
-
-                if (enemy.health < minLife && distance < fireRange + 0.2f)
+                float enemyHealth = enemy.health + enemy.shield * 0.2f;
+                if (enemy.type == UnitType.TERRAN_SIEGETANK || enemy.type == UnitType.TERRAN_SIEGETANKSIEGED)
                 {
-                    minLife = enemy.health;
+                    enemyHealth *= 0.35f;
+                }
+
+                if (enemyHealth < minLife && distance < fireRange + 0.2f)
+                {
+                    minLife = enemyHealth;
                     minLifeEnemy = enemy;
                 }
 

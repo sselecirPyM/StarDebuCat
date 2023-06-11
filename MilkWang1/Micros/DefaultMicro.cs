@@ -1,6 +1,7 @@
 ﻿using MilkWangBase.Utility;
 using StarDebuCat.Data;
 using System;
+using System.Numerics;
 
 namespace MilkWang1.Micros;
 
@@ -116,6 +117,11 @@ public class DefaultMicro : IMicro
                 commandSystem.OptimiseCommand(unit, Abilities.ATTACK, battleUnit.minLifeEnemy);
                 battleUnit.commanding = true;
             }
+            //else if (unit.positionZ > enemy.positionZ + 0.5f && Vector2.Distance(unitPosition, enemy.position) < 9)
+            //{
+            //    commandSystem.OptimiseCommand(unit, Abilities.STOP);
+            //    battleUnit.commanding = true;
+            //}
             else if (battleUnit.microStrategy == MicroStrategy.Forward || battleUnit.microStrategy == MicroStrategy.Push)
             {
                 commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
@@ -152,12 +158,12 @@ public class DefaultMicro : IMicro
                 commandSystem.OptimiseCommand(unit, Abilities.ATTACK, battleUnit.minLifeEnemy);
                 battleUnit.commanding = true;
             }
-            else if (analysisSystem.terrainHeight.Query(unitPosition) <= analysisSystem.terrainHeight.Query(enemy.position) + 2)
+            else if (unit.positionZ <= enemy.positionZ + 0.5f)
             {
-                commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
+                commandSystem.OptimiseCommand(unit, Abilities.ATTACK_ATTACK, enemy.position);
                 battleUnit.commanding = true;
             }
-            else if (analysisSystem.terrainHeight.Query(unitPosition) > analysisSystem.terrainHeight.Query(enemy.position) + 3)
+            else if (unit.positionZ > enemy.positionZ + 0.5f && Vector2.Distance(unitPosition, enemy.position) < 12)
             {
                 commandSystem.OptimiseCommand(unit, Abilities.STOP);
                 battleUnit.commanding = true;

@@ -1,5 +1,5 @@
-﻿using MilkWangBase;
-using MilkWangBase.Attributes;
+﻿using MilkWang1.Attributes;
+using MilkWangBase;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -17,47 +17,47 @@ public class BuildSystem1
     PredicationSystem1 predicationSystem;
     Random random = new Random();
 
-    [XFind("CollectUnits", Alliance.Self)]
+    [Units(Alliance.Self)]
     public List<Unit> myUnits;
 
-    [XFind("CollectUnits", Alliance.Self, "Worker")]
+    [Units(Alliance.Self, "Worker")]
     public List<Unit> workers;
 
-    [XFind("CollectUnits", Alliance.Self, "Worker", "Idle")]
+    [Units(Alliance.Self, "Worker", "Idle")]
     public List<Unit> idleWorkers;
 
-    [XFind("CollectUnits", Alliance.Self, "CommandCenter")]
+    [Units(Alliance.Self, "CommandCenter")]
     public List<Unit> commandCenters;
 
-    [XFind("CollectUnits", Alliance.Self, "Building")]
+    [Units(Alliance.Self, "Building")]
     public List<Unit> buildings;
 
 
-    [XFind("CollectUnits", Alliance.Self, "Factory")]
+    [Units(Alliance.Self, "Factory")]
     public List<Unit> factories;
 
-    [XFind("CollectUnits", Alliance.Self, "Army")]
+    [Units(Alliance.Self, "Army")]
     public List<Unit> armies;
 
-    [XFind("CollectUnits", Alliance.Neutral, "MineralField")]
+    [Units(Alliance.Neutral, "MineralField")]
     public List<Unit> minerals;
 
-    [XFind("CollectUnits", Alliance.Neutral, "VespeneGeyser")]
+    [Units(Alliance.Neutral, "VespeneGeyser")]
     public List<Unit> geysers;
 
-    [XFind("CollectUnits", Alliance.Self, "Building", "Refinery")]
+    [Units(Alliance.Self, "Building", "Refinery")]
     public List<Unit> _refinery;
 
-    [XFind("QuadTree", Alliance.Enemy, "Army")]
+    [QuadTree(Alliance.Enemy, "Army")]
     public QuadTree<Unit> enemyArmies1;
 
-    [XFind("QuadTree", Alliance.Neutral, "MineralField")]
+    [QuadTree(Alliance.Neutral, "MineralField")]
     public QuadTree<Unit> minerals1;
 
-    [XFind("QuadTree", Alliance.Neutral, "VespeneGeyser")]
+    [QuadTree(Alliance.Neutral, "VespeneGeyser")]
     public QuadTree<Unit> geysers1;
 
-    [XFind("QuadTree", Alliance.Self, "Refinery")]
+    [QuadTree(Alliance.Self, "Refinery")]
     public QuadTree<Unit> refinery1;
 
     public List<Vector2> resourcePoints;
@@ -276,10 +276,10 @@ public class BuildSystem1
         foreach (var factory in factories)
         {
             UnitType labType = GetLabType(factory.type);
-            if (labType == UnitType.INVALID)
+            if (labType == UnitType.INVALID || factory.orders.Count != 0 || factory.buildProgress != 1)
                 continue;
 
-            if (factory.addOnTag == 0 && factory.orders.Count == 0 && factory.buildProgress == 1 && ReadyToBuild(labType))
+            if (factory.addOnTag == 0 && ReadyToBuild(labType))
             {
                 Build(factory, labType, factory.position, 5);
             }
@@ -295,10 +295,16 @@ public class BuildSystem1
                 var _trainType = unitTypes.GetRandom(random);
                 if (ReadyToBuild(_trainType))
                 {
-                    if (analysisSystem.GetUnitTypeData(_trainType).RequireAttached && factory.addOnTag == 0)
+                    var typeData = analysisSystem.GetUnitTypeData(_trainType);
+                    if (typeData.RequireAttached && factory.addOnTag == 0)
                     {
                         continue;
                     }
+                    if (resourceRemain.mineral < 200 && resourceRemain.vespene > 200 && typeData.VespeneCost == 0)
+                    {
+                        continue;
+                    }
+
                     trainUnitType = _trainType;
                 }
             }

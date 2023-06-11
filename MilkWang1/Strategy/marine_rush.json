@@ -10,7 +10,7 @@
           "TERRAN_MARINE": 30
         },
         {
-          "TERRAN_BARRACKS": 5,
+          "TERRAN_BARRACKS": 3,
           "TERRAN_FACTORY": 1,
           "TERRAN_FACTORYTECHLAB": 1,
           "TERRAN_BARRACKSTECHLAB": 1,
@@ -20,19 +20,21 @@
         },
         {
           "TERRAN_BARRACKS": 4,
-          "TERRAN_FACTORY": 2,
-          "TERRAN_FACTORYTECHLAB": 2,
+          "TERRAN_FACTORY": 1,
+          "TERRAN_FACTORYTECHLAB": 1,
           "TERRAN_BARRACKSTECHLAB": 2,
-          "TERRAN_MARINE": 25,
-          "TERRAN_MARAUDER": 10,
-          "TERRAN_SIEGETANK": 8
+          "TERRAN_MARINE": 20,
+          "TERRAN_MARAUDER": 5,
+          "TERRAN_SIEGETANK": 8,
+          "TERRAN_CYCLONE": 1,
+          "TERRAN_ENGINEERINGBAY": 1
         },
         {
           "TERRAN_BARRACKS": 3,
           "TERRAN_FACTORY": 2,
           "TERRAN_BARRACKSTECHLAB": 2,
           "TERRAN_MARINE": 20,
-          "TERRAN_MARAUDER": 8,
+          "TERRAN_MARAUDER": 5,
           "TERRAN_HELLION": 0,
           "TERRAN_SIEGETANK": 8,
           "TERRAN_CYCLONE": 4,
@@ -118,23 +120,23 @@
         },
         {
           "TERRAN_COMMANDCENTER": 4,
-          "TERRAN_ORBITALCOMMAND": 3,
-          "TERRAN_PLANETARYFORTRESS": 1,
+          "TERRAN_ORBITALCOMMAND": 2,
+          "TERRAN_PLANETARYFORTRESS": 2,
           "TERRAN_MULE": 10,
           "TERRAN_SCV": 50
         },
         {
           "TERRAN_COMMANDCENTER": 5,
-          "TERRAN_ORBITALCOMMAND": 3,
-          "TERRAN_PLANETARYFORTRESS": 2,
+          "TERRAN_ORBITALCOMMAND": 2,
+          "TERRAN_PLANETARYFORTRESS": 3,
           "TERRAN_MULE": 10,
           "TERRAN_SCV": 50,
           "TERRAN_MISSILETURRET": 1
         },
         {
           "TERRAN_COMMANDCENTER": 6,
-          "TERRAN_ORBITALCOMMAND": 4,
-          "TERRAN_PLANETARYFORTRESS": 2,
+          "TERRAN_ORBITALCOMMAND": 2,
+          "TERRAN_PLANETARYFORTRESS": 4,
           "TERRAN_MULE": 10,
           "TERRAN_SCV": 50,
           "TERRAN_MISSILETURRET": 2

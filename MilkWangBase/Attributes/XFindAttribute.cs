@@ -2,7 +2,7 @@
 
 namespace MilkWangBase.Attributes;
 
-public class XFindAttribute : Attribute
+public abstract class XFindAttribute : Attribute
 {
     public string MemberName { get; }
 

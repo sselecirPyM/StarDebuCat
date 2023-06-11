@@ -1,4 +1,5 @@
-﻿using MilkWangBase.Attributes;
+﻿using MilkWang1.Attributes;
+using MilkWang1.Learning;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -8,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using static MilkWang1.Util;
-using MilkWang1.Learning;
 
 namespace MilkWang1;
 
@@ -25,25 +25,25 @@ public class TerranBot1
     Random random = new Random();
 
 
-    [XFind("CollectUnits", Alliance.Enemy)]
+    [Units(Alliance.Enemy)]
     public List<Unit> enemyUnits;
-    [XFind("CollectUnits", Alliance.Enemy, "Army")]
+    [Units(Alliance.Enemy, "Army")]
     public List<Unit> enemyArmy;
 
-    [XFind("CollectUnits", Alliance.Self)]
+    [Units(Alliance.Self)]
     public List<Unit> myUnits;
 
-    [XFind("CollectUnits", Alliance.Self, "CommandCenter")]
+    [Units(Alliance.Self, "CommandCenter")]
     public List<Unit> commandCenters;
 
-    [XFind("CollectUnits", Alliance.Self, "Army")]
+    [Units(Alliance.Self, "Army")]
     public List<Unit> armies;
 
-    [XFind("CollectUnits", Alliance.Neutral, "MineralField")]
+    [Units(Alliance.Neutral, "MineralField")]
     public List<Unit> minerals;
 
 
-    [XFind("QuadTree", Alliance.Self)]
+    [QuadTree(Alliance.Self)]
     public QuadTree<Unit> myUnits1;
 
     HashSet<Unit> keepers = new();
@@ -175,7 +175,7 @@ public class TerranBot1
         myUnits1.ClearSearch(friendNearbys, battleSystem.mainTarget, 3);
 
 
-        bool changeTarget = friendNearbys.Count > 2 && gameLoop > 6272;
+        bool changeTarget = friendNearbys.Count > 2 && gameLoop > 6048;
 
         attackCount = currentStrategy.attackCount + Math.Clamp(frame.TotalLost - frame.TotalKill, -1200, 1000) / 150;
 

@@ -1,5 +1,5 @@
-﻿using MilkWangBase;
-using MilkWangBase.Attributes;
+﻿using MilkWang1.Attributes;
+using MilkWangBase;
 using MilkWangBase.Utility;
 using StarDebuCat.Data;
 using System;
@@ -12,7 +12,7 @@ public class PredicationSystem1
 {
     public AnalysisSystem1 analysisSystem;
 
-    [XFind("CollectUnits", Alliance.Self)]
+    [Units(Alliance.Self)]
     public List<Unit> myUnits;
 
 

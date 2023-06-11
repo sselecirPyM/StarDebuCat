@@ -1,4 +1,4 @@
-﻿using MilkWangBase.Attributes;
+﻿using MilkWang1.Attributes;
 using StarDebuCat;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
@@ -33,7 +33,7 @@ public class DebugSystem
     bool initialize = false;
     Field field = new Field();
 
-    [XFind("CollectUnits", Alliance.Self)]
+    [Units(Alliance.Self)]
     List<Unit> myUnits;
 
     void Update()
