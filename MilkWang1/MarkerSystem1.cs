@@ -1,5 +1,4 @@
-﻿using MilkWangBase.Attributes;
-using StarDebuCat.Data;
+﻿using StarDebuCat.Data;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -26,7 +25,7 @@ public class MarkerSystem1
 
     public HashSet<Mark> prepareRemove = new();
 
-    void Update()
+    public void Update()
     {
         foreach (var mark in marks)
         {
@@ -53,10 +52,5 @@ public class MarkerSystem1
             position = position,
             name = name,
         });
-    }
-
-    public bool HitTest(string mark, Vector2 position, float radius)
-    {
-        return false;
     }
 }

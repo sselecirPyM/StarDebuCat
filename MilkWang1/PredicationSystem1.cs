@@ -2,6 +2,7 @@
 using MilkWangBase;
 using MilkWangBase.Utility;
 using StarDebuCat.Data;
+using StarDebuCat.Utility;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -63,7 +64,7 @@ public class PredicationSystem1
         foreach (var unit in myUnits)
         {
             UnitType unitType = GetAlias(unit.type);
-            var unitTypeData = analysisSystem.GetUnitTypeData(unit.type);
+            var unitTypeData = GameData.GetUnitTypeData(unit.type);
             float timeRemain = unitTypeData.BuildTime * (1 - unit.buildProgress);
             if (unit.buildProgress == 1.0f)
             {
@@ -84,7 +85,7 @@ public class PredicationSystem1
 
         foreach (var unit in buildNotCompletedUnits)
         {
-            var typeData = analysisSystem.GetUnitTypeData(unit.type);
+            var typeData = GameData.GetUnitTypeData(unit.type);
             float timeRemain = typeData.BuildTime * (1 - unit.buildProgress);
             if (GameData.selfBuild.Contains(unit.type))
             {
@@ -103,7 +104,7 @@ public class PredicationSystem1
             if (!builder.TryGetOrder(out var order))
                 continue;
             Abilities abilities = (Abilities)order.AbilityId;
-            if (analysisSystem.abilToUnitTypeData.TryGetValue(abilities, out var buildUnit))
+            if (GameData.abilToUnitTypeData.TryGetValue(abilities, out var buildUnit))
             {
                 var predicatedUnitType = GetAlias((UnitType)buildUnit.UnitId);
                 predicatedUnitTypes.Increment(predicatedUnitType);
@@ -111,7 +112,7 @@ public class PredicationSystem1
                 vBuildNotCompleted.Add((predicatedUnitType, timeRemain));
                 if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetWorldSpacePos && needWorkers.Count > 0)
                 {
-                    needWorkers.RemoveAll(u => Vector2.Distance(u.position, new Vector2(order.TargetWorldSpacePos.X, order.TargetWorldSpacePos.Y)) < 0.5f);
+                    needWorkers.RemoveAll(u => Vector2.Distance(u.position, order.TargetWorldSpacePos.ToVector2()) < 0.5f);
                 }
                 else if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetUnitTag && needWorkers.Count > 0)
                 {
@@ -129,7 +130,7 @@ public class PredicationSystem1
             {
                 predicatedUnitTypes.Increment(unitType);
             }
-            if (analysisSystem.abilToUpgrade.TryGetValue(abilities, out var upgrade))
+            if (GameData.abilToUpgrade.TryGetValue(abilities, out var upgrade))
             {
                 var up1 = (UpgradeType)upgrade.UpgradeId;
                 predicatedUpgrades.Add(up1);
@@ -211,7 +212,7 @@ public class PredicationSystem1
 
     void AddPredictEquivalent(UnitType unitType, int typeCount)
     {
-        var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
+        var unitTypeData = GameData.GetUnitTypeData(unitType);
         if (unitTypeData.TechAlias != null)
             foreach (var alias in unitTypeData.TechAlias)
             {
@@ -226,7 +227,7 @@ public class PredicationSystem1
     void Initialize1()
     {
         initialized = true;
-        foreach (var pair in analysisSystem.abilToUnitTypeData)
+        foreach (var pair in GameData.abilToUnitTypeData)
         {
             int foodCost = (int)pair.Value.FoodRequired;
             int foodPrivede = (int)pair.Value.FoodProvided;
@@ -260,7 +261,7 @@ public class PredicationSystem1
 
     UnitType GetAlias(UnitType unitType)
     {
-        var unitType1 = (UnitType)analysisSystem.GetUnitTypeData(unitType).UnitAlias;
+        var unitType1 = (UnitType)GameData.GetUnitTypeData(unitType).UnitAlias;
         if (unitType1 != UnitType.INVALID)
             return unitType1;
         else

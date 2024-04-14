@@ -8,7 +8,7 @@ public class BotStrategyList
     public List<string> strategies;
 }
 
-public class BuildRail
+public class BuildSequence
 {
     public Dictionary<UnitType, int>[] buildSequence;
     public int[] buildSequenceStart;
@@ -19,6 +19,6 @@ public class BotStrategy
     public string Name;
     public string Description;
 
-    public BuildRail[] buildRails;
+    public BuildSequence[] buildSequences;
     public int attackCount;
 }

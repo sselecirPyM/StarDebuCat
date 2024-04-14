@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 namespace StarDebuCat.Algorithm;
 
@@ -222,8 +221,6 @@ public class QuadTree<T>
         {
             for (int i = node.left; i < node.right; i++)
             {
-                if (Math.Abs(points[i].Item1 - point.x) > radius) continue;
-                if (Math.Abs(points[i].Item2 - point.y) > radius) continue;
                 if (InRange((points[i].Item1, points[i].Item2), point, radius))
                 {
                     return true;

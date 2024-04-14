@@ -22,4 +22,16 @@ public class BotSubController
     public CommandSystem1 commandSystem;
     [System]
     public DebugSystem debugSystem;
+
+    //public void Update()
+    //{
+    //    analysisSystem.Update();
+    //    predicationSystem.Update();
+    //    markerSystem.Update();
+    //    terranBot1.Update();
+    //    battleSystem.Update();
+    //    buildSystem.Update();
+    //    commandSystem.Update();
+    //    debugSystem.Update();
+    //}
 }

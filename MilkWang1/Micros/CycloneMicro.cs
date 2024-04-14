@@ -1,27 +1,27 @@
 ﻿using MilkWangBase.Utility;
 using StarDebuCat.Data;
 using System.Collections.Generic;
+using System.Composition;
 using System.Numerics;
 
 namespace MilkWang1.Micros;
 
+//[Export(typeof(IMicro))]
+//[ExportMetadata("unit", UnitType.TERRAN_CYCLONE)]
 public class CycloneMicro : IMicro
 {
-    public CommandSystem1 commandSystem;
-    public AnalysisSystem1 analysisSystem;
-    public BattleSystem1 battleSystem;
+    [Import]
+    public CommandSystem1 commandSystem { get; set; }
+    [Import]
+    public AnalysisSystem1 analysisSystem { get; set; }
+    [Import]
+    public BattleSystem1 battleSystem { get; set; }
 
     Dictionary<BattleUnit, ulong> lockonPair = new();
 
     Dictionary<BattleUnit, ulong> lock1 = new();
     Dictionary<BattleUnit, ulong> lock2 = new();
 
-    public CycloneMicro(CommandSystem1 commandSystem, AnalysisSystem1 analysisSystem, BattleSystem1 battleSystem)
-    {
-        this.commandSystem = commandSystem;
-        this.analysisSystem = analysisSystem;
-        this.battleSystem = battleSystem;
-    }
 
     public void Micro(BattleUnit battleUnit)
     {

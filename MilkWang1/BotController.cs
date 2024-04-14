@@ -1,24 +1,23 @@
-﻿using MilkWangBase;
-using MilkWangBase.Core;
+﻿using MilkWangBase.Core;
 using MilkWangBase.Utility;
 using StarDebuCat;
+using StarDebuCat.Data;
 using System;
 using System.Runtime.InteropServices;
 using static MilkWang1.Util;
 
 namespace MilkWang1;
 
-public enum BotState
-{
-    Initialize = 0,
-    WaitForInput,
-    Exit,
-    Do,
-    Decision,
-}
 
 public class BotController : IDisposable
 {
+    public enum AppState
+    {
+        Initialize = 0,
+        WaitForInput,
+        Exit,
+        Running,
+    }
     public GameConnection gameConnection;
 
     public CLArgs CLArgs;
@@ -27,7 +26,7 @@ public class BotController : IDisposable
 
     public bool exitProgram;
 
-    public BotState botState;
+    public AppState appState;
 
     public void Initialize()
     {
@@ -73,17 +72,17 @@ public class BotController : IDisposable
     public void Update()
     {
         var inputSystem = subController.inputSystem;
-        switch (botState)
+        switch (appState)
         {
-            case BotState.Initialize:
+            case AppState.Initialize:
                 inputSystem.Init2();
-                botState = BotState.Do;
+                appState = AppState.Running;
                 break;
             //case BotState.WaitForInput:
             //    gameConnection.RequestStep(1);
             //    botState = BotState.Do;
             //    break;
-            case BotState.Do:
+            case AppState.Running:
                 //gameConnection.RequestStep(1);
                 //inputSystem.observation = gameConnection.RequestObservation();
                 inputSystem.observation = gameConnection.StepObservation();
@@ -91,15 +90,15 @@ public class BotController : IDisposable
                 var status = gameConnection.status;
                 if (status == SC2APIProtocol.Status.Ended || status == SC2APIProtocol.Status.Quit)
                 {
-                    botState = BotState.Exit;
+                    appState = AppState.Exit;
                 }
                 else
                 {
                     fusion.Update();
-                    botState = BotState.Do;
+                    appState = AppState.Running;
                 }
                 break;
-            case BotState.Exit:
+            case AppState.Exit:
                 foreach (var result in inputSystem.observation.PlayerResults)
                 {
                     if (result.PlayerId == inputSystem.playerId)

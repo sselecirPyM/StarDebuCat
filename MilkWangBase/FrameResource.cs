@@ -7,28 +7,28 @@ namespace MilkWangBase;
 
 public class FrameResource
 {
-    public float CollectionRateMinerals = new();
-    public float CollectionRateVespene = new();
-    public float CollectedMinerals = new();
-    public float CollectedVespene = new();
-    public float KilledMineralsArmy = new();
-    public float KilledMineralsTechnology = new();
-    public float KilledVespeneArmy = new();
-    public float KilledVespeneTechnology = new();
+    public float CollectionRateMinerals;
+    public float CollectionRateVespene;
+    public float CollectedMinerals  ;
+    public float CollectedVespene;
+    public float KilledMineralsArmy;
+    public float KilledMineralsTechnology;
+    public float KilledVespeneArmy;
+    public float KilledVespeneTechnology;
 
-    public float TotalUsedMineralsArmy = new();
-    public float TotalUsedMineralsTechnology = new();
-    public float TotalUsedVespeneArmy = new();
-    public float TotalUsedVespeneTechnology = new();
+    public float TotalUsedMineralsArmy;
+    public float TotalUsedMineralsTechnology;
+    public float TotalUsedVespeneArmy;
+    public float TotalUsedVespeneTechnology;
 
-    public float UsedMineralsArmy = new();
-    public float UsedVespeneArmy = new();
+    public float UsedMineralsArmy;
+    public float UsedVespeneArmy;
 
-    public float LostMineralsArmy = new();
-    public float LostVespeneArmy = new();
-    public float SpentMinerals = new();
-    public float SpentVespene = new();
-    public float FoodUsedArmy = new();
+    public float LostMineralsArmy;
+    public float LostVespeneArmy;
+    public float SpentMinerals;
+    public float SpentVespene;
+    public float FoodUsedArmy;
 
     public int Minerals;
     public int Vespene;

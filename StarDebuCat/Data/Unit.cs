@@ -1,4 +1,5 @@
 ﻿using SC2APIProtocol;
+using StarDebuCat.Utility;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -58,14 +59,14 @@ public class Unit
         shieldMax = unit.ShieldMax;
         energy = unit.Energy;
         energyMax = unit.EnergyMax;
-        position = new Vector2(unit.Pos.X, unit.Pos.Y);
+        position = unit.Pos.ToVector2();
         positionZ = unit.Pos.Z;
 
         fired = weaponCooldown < unit.WeaponCooldown;
         weaponCooldown = unit.WeaponCooldown;
         radius = unit.Radius;
         buildProgress = unit.BuildProgress;
-        isCloaked = unit.Cloak == SC2APIProtocol.CloakState.Cloaked;
+        isCloaked = unit.Cloak == SC2APIProtocol.CloakState.Cloaked || unit.Cloak == SC2APIProtocol.CloakState.CloakedAllied;
         isPowered = unit.IsPowered;
         isFlying = unit.IsFlying;
         isBurrowed = unit.IsBurrowed;
@@ -88,7 +89,7 @@ public class Unit
                 buffs = new List<BuffType>();
             }
             buffs.Clear();
-            foreach(var buffId in unit.BuffIds)
+            foreach (var buffId in unit.BuffIds)
             {
                 buffs.Add((BuffType)buffId);
             }

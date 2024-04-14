@@ -1,6 +1,7 @@
 ﻿using StarDebuCat;
 using StarDebuCat.Commanding;
 using StarDebuCat.Data;
+using StarDebuCat.Utility;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -8,12 +9,12 @@ namespace MilkWang1;
 
 public class CommandSystem1
 {
-    AnalysisSystem1 analysisSystem;
+    public GameData GameData;
     public GameConnection gameConnection;
 
     public ActionList actionList = new();
 
-    void Update()
+    public void Update()
     {
         gameConnection.RequestAction(actionList.actions);
         actionList.Clear();
@@ -40,9 +41,8 @@ public class CommandSystem1
             }
             if (unitAbilities == abilities)
             {
-                var pos = order.TargetWorldSpacePos;
-                var pos1 = new Vector2(pos.X, pos.Y);
-                if (Vector2.DistanceSquared(target, pos1) < maxOptimiseDistance)
+                var pos = order.TargetWorldSpacePos.ToVector2();
+                if (Vector2.DistanceSquared(target, pos) < maxOptimiseDistance)
                 {
                     return;
                 }
@@ -140,6 +140,6 @@ public class CommandSystem1
     }
     Abilities GetBuildAbility(UnitType unitType)
     {
-        return (Abilities)analysisSystem.GetUnitTypeData(unitType).AbilityId;
+        return (Abilities)GameData.GetUnitTypeData(unitType).AbilityId;
     }
 }

@@ -1,17 +1,17 @@
 ﻿using StarDebuCat.Data;
+using System.Composition;
 
 namespace MilkWang1.Micros;
 
+[Export(typeof(IMicro))]
+[ExportMetadata("unit", UnitType.TERRAN_GHOST)]
 public class GhostMicro : IMicro
 {
-    public BattleSystem1 battleSystem;
-    public CommandSystem1 commandSystem;
+    [Import]
+    public BattleSystem1 battleSystem { get;set; }
+    [Import]
+    public CommandSystem1 commandSystem { get; set; }
 
-    public GhostMicro(BattleSystem1 battleSystem, CommandSystem1 commandSystem)
-    {
-        this.battleSystem = battleSystem;
-        this.commandSystem = commandSystem;
-    }
 
     public void Micro(BattleUnit battleUnit)
     {

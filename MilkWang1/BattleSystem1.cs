@@ -1,14 +1,14 @@
 ﻿using MilkWang1.Attributes;
 using MilkWang1.Micros;
-using MilkWangBase;
-using MilkWangBase.Attributes;
-using MilkWangBase.Core;
 using MilkWangBase.Utility;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
 using System;
 using System.Collections.Generic;
+using System.Composition;
+using System.Composition.Hosting;
 using System.Numerics;
+using System.Reflection;
 
 namespace MilkWang1;
 
@@ -16,7 +16,6 @@ public class BattleSystem1
 {
     AnalysisSystem1 analysisSystem;
     CommandSystem1 commandSystem;
-    Fusion fusion;
 
     [Units(Alliance.Self, "Army")]
     public List<Unit> armies;
@@ -32,6 +31,8 @@ public class BattleSystem1
     public QuadTree<Unit> armies1;
     [QuadTree(Alliance.Enemy)]
     public QuadTree<Unit> enemyUnits1;
+    [QuadTree(Alliance.Enemy, "Worker")]
+    public QuadTree<Unit> enemyUnitsWorkers1;
     [QuadTree(Alliance.Enemy, "Ground")]
     public QuadTree<Unit> enemyGround;
     [QuadTree(Alliance.Enemy, "Army")]
@@ -42,25 +43,34 @@ public class BattleSystem1
 
     public Vector2 mainTarget;
 
-    public Dictionary<UnitType, IMicro> micros;
-    public List<IMicro> micros1;
+    public Dictionary<UnitType, IMicro> micros = new Dictionary<UnitType, IMicro>();
+    public List<IMicro> micros1 = new List<IMicro>();
 
-    Random random = new();
     public DefaultMicro defaultMicro;
 
     void Initialize()
     {
-        defaultMicro = fusion.Instantiate<DefaultMicro>();
-        IMicro siegeTankMicro = fusion.Instantiate<SiegeTankMicro>();
-        IMicro ghostMicro = fusion.Instantiate<GhostMicro>();
+        ContainerConfiguration containerConfiguration = new ContainerConfiguration();
+        containerConfiguration.WithAssembly(Assembly.GetExecutingAssembly());
+        containerConfiguration.WithExport(this);
+        containerConfiguration.WithExport(analysisSystem);
+        containerConfiguration.WithExport(commandSystem);
+        containerConfiguration.WithExport(GameData);
+        var container = containerConfiguration.CreateContainer();
+        var exports = container.GetExports<Lazy<IMicro, IDictionary<string, object>>>();
+        foreach (var export in exports)
+        {
+            foreach (var val in export.Metadata.Values)
+            {
+                if (val is UnitType unitType)
+                {
+                    micros[unitType] = export.Value;
+                }
+            }
+        }
 
-        micros = new Dictionary<UnitType, IMicro>();
-        micros[UnitType.TERRAN_CYCLONE] = fusion.Instantiate<CycloneMicro>();
-        micros[UnitType.TERRAN_SIEGETANK] = siegeTankMicro;
-        micros[UnitType.TERRAN_SIEGETANKSIEGED] = siegeTankMicro;
-        micros[UnitType.TERRAN_GHOST] = ghostMicro;
-
-        micros1 = new List<IMicro>();
+        defaultMicro = new DefaultMicro();
+        container.SatisfyImports(defaultMicro);
         micros1.Add(defaultMicro);
         foreach (var value in micros.Values)
         {
@@ -71,7 +81,7 @@ public class BattleSystem1
         }
     }
 
-    void Update()
+    public void Update()
     {
         foreach (var army in armies)
         {
@@ -106,7 +116,6 @@ public class BattleSystem1
     }
 
     List<Unit> enemyNearbyMix = new();
-    List<Unit> enemyNearbyWorker = new();
 
     List<Unit> friendNearbys = new();
     List<Unit> enemyAny = new();
@@ -117,18 +126,18 @@ public class BattleSystem1
         enemyChaseCount.Clear();
         foreach (var unit in armies)
         {
-            float fireRange = analysisSystem.GetFireRange(unit.type);
+            float fireRange = GameData.GetFireRange(unit.type);
 
             var unitPosition = unit.position;
             enemyArmies1.ClearSearch(enemyNearbyMix, unitPosition, 15f);
-            enemyUnits1.Search(enemyNearbyMix, unitPosition, 3.5f);
+
+            enemyUnits1.Search(enemyNearbyMix, unitPosition, 3.0f);
+
+            enemyUnitsWorkers1.Search(enemyNearbyMix, unitPosition, 6.5f);
+
             armies1.ClearSearch(friendNearbys, unitPosition, 5.5f);
 
             enemyUnits1.ClearSearch(enemyAny, unitPosition, fireRange + 1.5f);
-
-            enemyUnits1.ClearSearch(enemyNearbyWorker, unitPosition, 6.5f);
-            enemyNearbyWorker.RemoveAll(u => !analysisSystem.GameData.workers.Contains(u.type));
-            enemyNearbyMix.AddRange(enemyNearbyWorker);
 
             float inEnemyRange = 0;
             float enemyInRange = 0;
@@ -141,8 +150,8 @@ public class BattleSystem1
             float minLife = 150.0f;
             foreach (var enemy in enemyNearbyMix)
             {
-                var enemyTypeData = analysisSystem.GetUnitTypeData(enemy);
-                float enemyRange = analysisSystem.GetFireRange(enemy.type);
+                var enemyTypeData = GameData.GetUnitTypeData(enemy);
+                float enemyRange = GameData.GetFireRange(enemy.type);
                 float dummyEnemyRange = Math.Max(enemyRange, 3) + 2.5f;
                 float fireRange1 = Math.Max(fireRange, 4);
                 float distance = Math.Max(Vector2.Distance(unitPosition, enemy.position) - unit.radius - enemy.radius, 0);
@@ -155,8 +164,9 @@ public class BattleSystem1
 
                 if (distance < enemyRange + 2.5f)
                     enemyMaxRange = Math.Max(enemyMaxRange, enemyRange);
-                float enemyHealth = enemy.health + enemy.shield * 0.2f;
-                if (enemy.type == UnitType.TERRAN_SIEGETANK || enemy.type == UnitType.TERRAN_SIEGETANKSIEGED)
+                float enemyHealth = enemy.health + enemy.shield * 0.2f - enemy.energy * 0.2f;
+                if (enemy.type == UnitType.TERRAN_SIEGETANK || enemy.type == UnitType.TERRAN_SIEGETANKSIEGED ||
+                    enemy.type == UnitType.ZERG_BANELING || enemy.type == UnitType.ZERG_BANELINGBURROWED)
                 {
                     enemyHealth *= 0.35f;
                 }
@@ -176,7 +186,7 @@ public class BattleSystem1
 
             foreach (var friendly in friendNearbys)
             {
-                var friendlyTypeData = analysisSystem.GetUnitTypeData(friendly);
+                var friendlyTypeData = GameData.GetUnitTypeData(friendly);
                 friendlyNearByFood += friendlyTypeData.FoodRequired;
             }
             var battleUnit = battleUnits[unit];
@@ -199,7 +209,15 @@ public class BattleSystem1
         {
             if (micros.TryGetValue(pair.Key.type, out var micro))
             {
-                micro.Micro(pair.Value);
+                try
+                {
+                    micro.Micro(pair.Value);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    Console.WriteLine(e.StackTrace);
+                }
             }
         }
         foreach (var unit in armies)
@@ -207,7 +225,7 @@ public class BattleSystem1
             var battleUnit = battleUnits[unit];
             if (battleUnit.commanding)
                 continue;
-            float fireRange = analysisSystem.GetFireRange(unit.type);
+            float fireRange = GameData.GetFireRange(unit.type);
 
             if (battleUnit.inEnemyRangeFood < battleUnit.friendlyNearByFood * 0.7f)
             {

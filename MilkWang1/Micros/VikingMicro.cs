@@ -1,17 +1,19 @@
-﻿namespace MilkWang1.Micros;
+﻿using System;
+using System.Composition;
 
+namespace MilkWang1.Micros;
+
+//[Export(typeof(IMicro))]
+//[ExportMetadata("unit", UnitType.TERRAN_VIKINGASSAULT)]
+//[ExportMetadata("unit2", UnitType.TERRAN_VIKINGFIGHTER)]
 public class VikingMicro : IMicro
 {
-    CommandSystem1 commandSystem;
-    AnalysisSystem1 analysisSystem;
-    BattleSystem1 battleSystem;
-
-    public VikingMicro(CommandSystem1 commandSystem, AnalysisSystem1 analysisSystem, BattleSystem1 battleSystem)
-    {
-        this.commandSystem = commandSystem;
-        this.analysisSystem = analysisSystem;
-        this.battleSystem = battleSystem;
-    }
+    [Import]
+    public CommandSystem1 commandSystem { get; set; }
+    [Import]
+    public AnalysisSystem1 analysisSystem { get; set; }
+    [Import]
+    public BattleSystem1 battleSystem { get; set; }
 
     public void Micro(BattleUnit battleUnit)
     {
@@ -21,5 +23,10 @@ public class VikingMicro : IMicro
     public void Update()
     {
 
+    }
+
+    public static bool Filter()
+    {
+        return true;
     }
 }

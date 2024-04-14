@@ -1,7 +1,7 @@
 ﻿{
   "name": "marine_rush",
   "attackCount": 20,
-  "buildRails": [
+  "buildSequences": [
     {
       "buildSequence": [
         {
@@ -113,30 +113,30 @@
         },
         {
           "TERRAN_COMMANDCENTER": 3,
-          "TERRAN_ORBITALCOMMAND": 2,
-          "TERRAN_PLANETARYFORTRESS": 1,
-          "TERRAN_MULE": 10,
-          "TERRAN_SCV": 50
-        },
-        {
-          "TERRAN_COMMANDCENTER": 4,
-          "TERRAN_ORBITALCOMMAND": 2,
+          "TERRAN_ORBITALCOMMAND": 1,
           "TERRAN_PLANETARYFORTRESS": 2,
           "TERRAN_MULE": 10,
           "TERRAN_SCV": 50
         },
         {
-          "TERRAN_COMMANDCENTER": 5,
-          "TERRAN_ORBITALCOMMAND": 2,
+          "TERRAN_COMMANDCENTER": 4,
+          "TERRAN_ORBITALCOMMAND": 1,
           "TERRAN_PLANETARYFORTRESS": 3,
+          "TERRAN_MULE": 10,
+          "TERRAN_SCV": 50
+        },
+        {
+          "TERRAN_COMMANDCENTER": 5,
+          "TERRAN_ORBITALCOMMAND": 1,
+          "TERRAN_PLANETARYFORTRESS": 4,
           "TERRAN_MULE": 10,
           "TERRAN_SCV": 50,
           "TERRAN_MISSILETURRET": 1
         },
         {
           "TERRAN_COMMANDCENTER": 6,
-          "TERRAN_ORBITALCOMMAND": 2,
-          "TERRAN_PLANETARYFORTRESS": 4,
+          "TERRAN_ORBITALCOMMAND": 1,
+          "TERRAN_PLANETARYFORTRESS": 5,
           "TERRAN_MULE": 10,
           "TERRAN_SCV": 50,
           "TERRAN_MISSILETURRET": 2

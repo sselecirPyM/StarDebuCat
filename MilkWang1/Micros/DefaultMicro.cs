@@ -1,25 +1,22 @@
 ﻿using MilkWangBase.Utility;
 using StarDebuCat.Data;
 using System;
+using System.Composition;
 using System.Numerics;
 
 namespace MilkWang1.Micros;
 
 public class DefaultMicro : IMicro
 {
-    public CommandSystem1 commandSystem;
-    public AnalysisSystem1 analysisSystem;
-    public BattleSystem1 battleSystem;
+    [Import]
+    public CommandSystem1 commandSystem {  get; set; }
+    [Import]
+    public BattleSystem1 battleSystem { get; set; }
+    [Import]
+    public GameData GameData { get; set; }
 
 
     public bool AllowPush = false;
-
-    public DefaultMicro(CommandSystem1 commandSystem, AnalysisSystem1 analysisSystem, BattleSystem1 battleSystem)
-    {
-        this.commandSystem = commandSystem;
-        this.analysisSystem = analysisSystem;
-        this.battleSystem = battleSystem;
-    }
 
     public void Micro(BattleUnit battleUnit)
     {
@@ -40,7 +37,7 @@ public class DefaultMicro : IMicro
     {
         Unit unit = battleUnit.unit;
         bool cast = false;
-        if (battleSystem.GameData.autoCast.TryGetValue(unit.type, out var autoCast) &&
+        if (GameData.autoCast.TryGetValue(unit.type, out var autoCast) &&
             unit.energy >= autoCast.energyRequired)
         {
             bool hasEnemy = battleUnit.nearestEnemy != null;
@@ -48,7 +45,7 @@ public class DefaultMicro : IMicro
 
             cast |= !autoCast.noEnemy && enemyInRange;
             cast |= autoCast.noEnemy && !enemyInRange && !battleSystem.enemyUnits1.HitTest(unit.position, autoCast.range);
-            var targetType = analysisSystem.abilitiesData[(int)autoCast.ability].target;
+            var targetType = GameData.abilitiesData[(int)autoCast.ability].target;
 
             if (cast && targetType == SC2APIProtocol.AbilityData.Target.None)
             {
@@ -81,7 +78,7 @@ public class DefaultMicro : IMicro
     {
         Unit unit = battleUnit.unit;
         var unitPosition = unit.position;
-        float fireRange = analysisSystem.GetFireRange(unit.type);
+        float fireRange = GameData.GetFireRange(unit.type);
 
         var enemy = battleUnit.nearestEnemy;
         var dummyEnemyMaxRange = battleUnit.dummyEnemyMaxRange;
@@ -139,7 +136,7 @@ public class DefaultMicro : IMicro
     {
         Unit unit = battleUnit.unit;
         var unitPosition = unit.position;
-        float fireRange = analysisSystem.GetFireRange(unit.type);
+        float fireRange = GameData.GetFireRange(unit.type);
 
         var enemy = battleUnit.nearestEnemy;
         var dummyEnemyMaxRange = battleUnit.dummyEnemyMaxRange;

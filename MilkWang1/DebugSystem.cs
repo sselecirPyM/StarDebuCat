@@ -1,5 +1,4 @@
-﻿using MilkWang1.Attributes;
-using StarDebuCat;
+﻿using StarDebuCat;
 using StarDebuCat.Algorithm;
 using StarDebuCat.Data;
 using System;
@@ -33,10 +32,7 @@ public class DebugSystem
     bool initialize = false;
     Field field = new Field();
 
-    [Units(Alliance.Self)]
-    List<Unit> myUnits;
-
-    void Update()
+    public void Update()
     {
         if (!initialize)
         {

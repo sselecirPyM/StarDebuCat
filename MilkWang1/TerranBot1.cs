@@ -15,7 +15,6 @@ namespace MilkWang1;
 public class TerranBot1
 {
     AnalysisSystem1 analysisSystem;
-    PredicationSystem1 predicationSystem;
     MarkerSystem1 markerSystem;
     BattleSystem1 battleSystem;
     BuildSystem1 buildSystem;
@@ -83,7 +82,7 @@ public class TerranBot1
     bool scvAttack;
     bool scvAttack1;
 
-    void Update()
+    public void Update()
     {
 
         if (!initialized)
@@ -100,7 +99,7 @@ public class TerranBot1
         buildSystem.requireUnitCount.Clear();
 
         buildSystem.randomlyUpgrade = gameLoop > 300 * 22.4;
-        battleSystem.defaultMicro.AllowPush = gameLoop > 240 * 22.4;
+        battleSystem.defaultMicro.AllowPush = gameLoop > 250 * 22.4;
 
         if (gameLoop < 22.4 * 125 && enemyArmy.Count > 1 && !scvAttack
             && Vector2.Distance(commandCenterPosition, enemyArmy[0].position) < 30)
@@ -129,7 +128,7 @@ public class TerranBot1
             }
         }
 
-        foreach (var rail in currentStrategy.buildRails)
+        foreach (var rail in currentStrategy.buildSequences)
         {
             int[] sequenceStart = rail.buildSequenceStart;
             int findIndex = -1;
@@ -246,7 +245,6 @@ public class TerranBot1
         enemyNearbys.Clear();
         foreach (var enemy in enemyUnits)
         {
-            Vector2 target1 = enemy.position;
             if ((!enemy.isFlying || !DData.Zerg.Contains(enemy.type)))
                 enemyNearbys.Add(enemy);
         }

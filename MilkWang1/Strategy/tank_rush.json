@@ -1,7 +1,7 @@
 ﻿{
   "name": "tank_rush",
   "attackCount": 20,
-  "buildRails": [
+  "buildSequences": [
     {
       "buildSequence": [
         {

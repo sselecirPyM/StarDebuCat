@@ -17,7 +17,7 @@ internal class Program
                 "-o",port.ToString(),
                 "--debug",
                 "--repeat","1",
-                "-m","BerlingradAIE.SC2Map",
+                "-m","HardLead512V2AIE.SC2Map",
                 //"--AIBuild", "Timing",
                 //"--TestStrategy", "test_tank"
             };

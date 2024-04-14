@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,12 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StarDebuCat\StarDebuCat.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="GameData\GameData.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

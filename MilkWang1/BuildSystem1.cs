@@ -89,7 +89,7 @@ public class BuildSystem1
         idleUnitTypes = BotData.onIdle.Keys.ToArray();
     }
 
-    void Update()
+    public void Update()
     {
         if (placementImage == null)
         {
@@ -107,7 +107,7 @@ public class BuildSystem1
         {
             if (worker1.TryGetOrder(out var order))
             {
-                if (!analysisSystem.abilitiesData[(int)order.AbilityId].IsBuilding)
+                if (!GameData.abilitiesData[(int)order.AbilityId].IsBuilding)
                     workersAvailable.Add(worker1);
                 if (analysisSystem.unitDictionary.TryGetValue(order.TargetUnitTag, out var targetUnit))
                     workerBuildTargets.Add(targetUnit);
@@ -195,7 +195,7 @@ public class BuildSystem1
                 }
                 else
                 {
-                    resourceRemain.mineral -= (int)analysisSystem.GetUnitTypeData(commandCenter).MineralCost;
+                    resourceRemain.mineral -= (int)GameData.GetUnitTypeData(commandCenter).MineralCost;
                 }
             }
         }
@@ -213,7 +213,7 @@ public class BuildSystem1
             if (TryGetAvailableWorker(out worker))
             {
                 var unitType = BotData.supplyBuilding;
-                var unitData = analysisSystem.GetUnitTypeData(unitType);
+                var unitData = GameData.GetUnitTypeData(unitType);
                 if (!Build(worker, unitType, worker.position, 10))
                     resourceRemain.mineral -= (int)unitData.MineralCost;
                 else
@@ -290,12 +290,12 @@ public class BuildSystem1
                 continue;
 
             UnitType trainUnitType = UnitType.INVALID;
-            if (analysisSystem.Spawners.TryGetValue(factory.type, out var unitTypes))
+            if (GameData.Spawners.TryGetValue(factory.type, out var unitTypes))
             {
                 var _trainType = unitTypes.GetRandom(random);
                 if (ReadyToBuild(_trainType))
                 {
-                    var typeData = analysisSystem.GetUnitTypeData(_trainType);
+                    var typeData = GameData.GetUnitTypeData(_trainType);
                     if (typeData.RequireAttached && factory.addOnTag == 0)
                     {
                         continue;
@@ -321,7 +321,7 @@ public class BuildSystem1
         {
             if (myUnit.orders.Count != 0 || myUnit.buildProgress != 1)
                 continue;
-            if (analysisSystem.UpgradesResearcher.TryGetValue(myUnit.type, out var upgrades))
+            if (GameData.UpgradesResearcher.TryGetValue(myUnit.type, out var upgrades))
             {
                 var upgrade = upgrades.GetRandom(random);
                 if (ReadyToUpgrade(upgrade))
@@ -352,7 +352,7 @@ public class BuildSystem1
 
     bool Warp(Unit unit, UnitType unitType, Vector2 position, float randomSize)
     {
-        var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
+        var unitTypeData = GameData.GetUnitTypeData(unitType);
         int mineralCost = (int)unitTypeData.MineralCost;
         int vespeneCost = (int)unitTypeData.VespeneCost;
         int foodCost = (int)unitTypeData.FoodRequired;
@@ -402,7 +402,7 @@ public class BuildSystem1
 
     bool Build(Unit unit, UnitType unitType, Vector2 position)
     {
-        var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
+        var unitTypeData = GameData.GetUnitTypeData(unitType);
         int mineralCost = (int)unitTypeData.MineralCost;
         int vespeneCost = (int)unitTypeData.VespeneCost;
         int foodCost = (int)unitTypeData.FoodRequired;
@@ -417,7 +417,7 @@ public class BuildSystem1
 
     bool Build(Unit unit, UnitType unitType, Unit target)
     {
-        var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
+        var unitTypeData = GameData.GetUnitTypeData(unitType);
         int mineralCost = (int)unitTypeData.MineralCost;
         int vespeneCost = (int)unitTypeData.VespeneCost;
         int foodCost = (int)unitTypeData.FoodRequired;
@@ -432,7 +432,7 @@ public class BuildSystem1
 
     bool Upgrade(Unit unit, UpgradeType upgrade)
     {
-        var upgradeData = analysisSystem.upgradeDatas[(int)upgrade];
+        var upgradeData = GameData.upgradeDatas[(int)upgrade];
         int mineralCost = (int)upgradeData.MineralCost;
         int vespeneCost = (int)upgradeData.VespeneCost;
         if (!predicationSystem.canUpgrades.Contains(upgrade))
@@ -464,7 +464,7 @@ public class BuildSystem1
 
     bool ResourceEnough(UnitType unitType)
     {
-        var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
+        var unitTypeData = GameData.GetUnitTypeData(unitType);
         int mineralCost = (int)unitTypeData.MineralCost;
         int vespeneCost = (int)unitTypeData.VespeneCost;
         int foodCost = (int)unitTypeData.FoodRequired;
@@ -482,7 +482,7 @@ public class BuildSystem1
 
     bool Train(Unit unit, UnitType unitType)
     {
-        var unitTypeData = analysisSystem.GetUnitTypeData(unitType);
+        var unitTypeData = GameData.GetUnitTypeData(unitType);
         int mineralCost = (int)unitTypeData.MineralCost;
         int vespeneCost = (int)unitTypeData.VespeneCost;
         int foodCost = (int)unitTypeData.FoodRequired;

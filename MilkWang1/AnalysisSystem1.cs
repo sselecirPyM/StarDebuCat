@@ -23,17 +23,6 @@ public class AnalysisSystem1
     public Race race;
     public Race enemyRace;
 
-    private List<float> fireRanges;
-    public List<SC2APIProtocol.UnitTypeData> unitTypeDatas;
-    public List<SC2APIProtocol.AbilityData> abilitiesData;
-    public List<SC2APIProtocol.UpgradeData> upgradeDatas;
-    public List<SC2APIProtocol.BuffData> buffDatas;
-    public List<SC2APIProtocol.EffectData> effectDatas;
-    public Dictionary<Abilities, SC2APIProtocol.UnitTypeData> abilToUnitTypeData;
-    public Dictionary<Abilities, SC2APIProtocol.UpgradeData> abilToUpgrade;
-
-    public Dictionary<UnitType, List<UnitType>> Spawners = new();
-    public Dictionary<UnitType, List<UpgradeType>> UpgradesResearcher = new();
 
     public HashSet<UpgradeType> hasUpgrade = new();
 
@@ -69,7 +58,9 @@ public class AnalysisSystem1
 
     public GameData GameData;
 
-    void Update()
+    bool initialized = false;
+
+    public void Update()
     {
         CollectData();
         CollectScores();
@@ -80,84 +71,14 @@ public class AnalysisSystem1
     void CollectData()
     {
         playerId = inputSystem.playerId;
-        if (unitTypeDatas != null)
-        {
+        if (initialized)
             return;
-        }
-        unitTypeDatas = new();
-        unitTypeDatas.AddRange(inputSystem.gameData.Units);
-        fireRanges = new(unitTypeDatas.Count);
-        foreach (var unitData in unitTypeDatas)
-        {
-            if (unitData.Weapons.Count > 0)
-            {
-                float maxDistance = 0;
-                foreach (var weapon in unitData.Weapons)
-                {
-                    maxDistance = Math.Max(maxDistance, weapon.Range);
-                }
-                fireRanges.Add(maxDistance);
-            }
-            else
-            {
-                fireRanges.Add(0);
-            }
-        }
+        initialized = true;
 
-        abilitiesData = new(inputSystem.gameData.Abilities);
-        abilToUnitTypeData = new();
-        foreach (var unitTypeData in unitTypeDatas)
-        {
-            if (unitTypeData.AbilityId != 0)
-                abilToUnitTypeData[(Abilities)unitTypeData.AbilityId] = unitTypeData;
-        }
-        upgradeDatas = new(inputSystem.gameData.Upgrades);
-        abilToUpgrade = new();
-        foreach (var upgrade in upgradeDatas)
-        {
-            if (upgrade.AbilityId != 0)
-                abilToUpgrade[(Abilities)upgrade.AbilityId] = upgrade;
-        }
-        buffDatas = new(inputSystem.gameData.Buffs);
-        effectDatas = new(inputSystem.gameData.Effects);
+        GameData.Initialize(inputSystem.gameData);
 
-        Spawners = new();
-        foreach (var requirement in DData.UnitRequirements)
-        {
-            var builder = requirement.Builder;
-            var unitType = requirement.UnitType;
-            if (GameData.building.Contains(unitType))
-            {
-                continue;
-            }
-            if (!Spawners.TryGetValue(builder, out var buildUnits1))
-            {
-                buildUnits1 = new();
-                Spawners[builder] = buildUnits1;
-            }
-            if (!buildUnits1.Contains(unitType))
-                buildUnits1.Add(unitType);
-        }
-        AnalizeResearchs();
         AnalizeTerrain();
         race = (Race)inputSystem.Race;
-    }
-
-    void AnalizeResearchs()
-    {
-        UpgradesResearcher = new();
-        foreach (var requirement in GameData.upgradeRequirements)
-        {
-            var researcher = requirement.Researcher;
-            var upgrade = requirement.Upgrade;
-            if (!UpgradesResearcher.TryGetValue(researcher, out var upgradeRequirements))
-            {
-                upgradeRequirements = new();
-                UpgradesResearcher[researcher] = upgradeRequirements;
-            }
-            if (!upgradeRequirements.Contains(upgrade))
-                upgradeRequirements.Add(upgrade);
-        }
     }
 
     void AnalizeTerrain()
@@ -370,7 +291,7 @@ public class AnalysisSystem1
                 deadUnits.Add(unit);
         foreach (var unit in deadUnits)
         {
-            var unitTypeData = GetUnitTypeData(unit);
+            var unitTypeData = GameData.GetUnitTypeData(unit);
             if (unit.owner == playerId)
             {
                 currentFrameResource.MineralLost += (int)unitTypeData.MineralCost;
@@ -552,22 +473,6 @@ public class AnalysisSystem1
         UnitType.PROTOSS_STARGATE,
         UnitType.ZERG_LARVA,
     };
-
-    public SC2APIProtocol.UnitTypeData GetUnitTypeData(Unit unit)
-    {
-        return unitTypeDatas[(int)unit.type];
-    }
-
-    public SC2APIProtocol.UnitTypeData GetUnitTypeData(UnitType unitType)
-    {
-        return unitTypeDatas[(int)unitType];
-    }
-
-    public float GetFireRange(UnitType unitType)
-    {
-        return fireRanges[(int)unitType];
-    }
-
 
     Vector2 MovePositionToHigher(Vector2 position)
     {

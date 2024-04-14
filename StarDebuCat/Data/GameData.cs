@@ -1,7 +1,6 @@
-﻿using StarDebuCat.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace MilkWangBase;
+namespace StarDebuCat.Data;
 
 public class AutoCast
 {
@@ -15,7 +14,7 @@ public class AutoCast
     public bool noEnemy;
 }
 
-public class GameData
+public partial class GameData
 {
     public HashSet<UnitType> selfBuild;
     public HashSet<UnitType> refineries;
@@ -29,7 +28,6 @@ public class GameData
     public Dictionary<Abilities, UnitType> morphToUnit;
     public Dictionary<UnitType, int> buildCompleteFoodCost;
     public Dictionary<UnitType, AutoCast> autoCast;
-    public Dictionary<string, object> Exports;
 
     public List<UpgradeRequirement> upgradeRequirements;
 }

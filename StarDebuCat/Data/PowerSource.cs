@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using StarDebuCat.Utility;
+using System.Numerics;
 
 namespace StarDebuCat.Data;
 
@@ -10,7 +11,7 @@ public class PowerSource
 
     public void Update(SC2APIProtocol.PowerSource powerSource)
     {
-        Pos = new Vector2(powerSource.Pos.X, powerSource.Pos.Y);
+        Pos = powerSource.Pos.ToVector2();
         Radius = powerSource.Radius;
         Tag = powerSource.Tag;
     }
