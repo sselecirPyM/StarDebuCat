@@ -9,6 +9,7 @@ namespace MilkWang2.Simulation
         public KDTree2<Unit> unitKDTree = new KDTree2<Unit>();
         public Dictionary<ulong, Unit> unitsDictionary = new Dictionary<ulong, Unit>();
         public List<Unit> units = new List<Unit>();
+        public List<Unit> selfUnits = new List<Unit>();
 
         public HashSet<ulong> previousUnits = new HashSet<ulong>();
         public HashSet<ulong> currentUnits = new HashSet<ulong>();
@@ -68,6 +69,12 @@ namespace MilkWang2.Simulation
 
             units.Clear();
             units.AddRange(unitsDictionary.Values);
+            selfUnits.Clear();
+            foreach (var u in units)
+            {
+                if (u.alliance == Alliance.Self)
+                    selfUnits.Add(u);
+            }
 
             unitKDTree.Clear();
             foreach (var unit in units)

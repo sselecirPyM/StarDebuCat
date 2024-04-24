@@ -14,6 +14,7 @@ namespace MilkWang2
 
         public override void StartGame(RequestJoinGame baseRequest)
         {
+            commandManager.unitManager = unitManager;
             baseRequest.Race = Race.Terran;
             baseRequest.Options = new InterfaceOptions()
             {

@@ -127,12 +127,11 @@ public static class SC2GameHelp
         }
     }
 
-    public static void LaunchSC2(int port, out string starcraftMaps)
+    public static void LaunchSC2(int port)
     {
         string starcraftExe = "";
         string starcraftDir = "";
         string versionDir = "";
-        starcraftMaps = "";
 
         var myDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         var executeInfo = Path.Combine(myDocuments, "StarCraft II", "ExecuteInfo.txt");
@@ -146,8 +145,6 @@ public static class SC2GameHelp
                     starcraftExe = argument;
                     versionDir = Path.GetDirectoryName(starcraftExe);
                     starcraftDir = Path.GetDirectoryName(Path.GetDirectoryName(versionDir));
-                    if (starcraftDir != null)
-                        starcraftMaps = Path.Combine(starcraftDir, "Maps");
                     break;
                 }
             }

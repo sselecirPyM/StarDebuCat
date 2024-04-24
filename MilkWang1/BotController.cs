@@ -44,9 +44,8 @@ public class BotController : IDisposable
         inputSystem.enemyId = CLArgs.OpponentId;
         if (CLArgs.Map != null)
         {
-            string maps = CLArgs.MapDir;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && CLArgs.MapDir == null)
-                StarDebuCat.Utility.SC2GameHelp.LaunchSC2(CLArgs.StartPort, out maps);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                StarDebuCat.Utility.SC2GameHelp.LaunchSC2(CLArgs.StartPort);
 
 
             inputSystem.map = CLArgs.Map;
@@ -65,7 +64,7 @@ public class BotController : IDisposable
         subController.debugSystem.enable = CLArgs.Debug;
 
         fusion.InitializeSystems();
-        subController.terranBot1.TestStrategy = CLArgs.TestStrategy;
+        subController.terranBot1.strategy = CLArgs.TestStrategy;
     }
 
     public void Update()

@@ -13,7 +13,6 @@ namespace MilkWang1;
 public class BuildSystem1
 {
     AnalysisSystem1 analysisSystem;
-    CommandSystem1 commandSystem;
     PredicationSystem1 predicationSystem;
     Random random = new Random();
 
@@ -124,7 +123,7 @@ public class BuildSystem1
         {
             if (nearByMineral.TryGetRandom(random, out var mineral))
             {
-                commandSystem.OptimiseCommand(worker1, Abilities.HARVEST_GATHER, mineral);
+                worker1.Command(Abilities.HARVEST_GATHER, mineral);
             }
         }
 
@@ -147,16 +146,16 @@ public class BuildSystem1
                 if (commandCenter.type == UnitType.TERRAN_ORBITALCOMMAND && commandCenter.energy >= 50 &&
                     nearByMineral1.TryGetRandom(random, out var mineral1) && NeedBuildUnit(UnitType.TERRAN_MULE))
                 {
-                    commandSystem.OptimiseCommand(commandCenter, Abilities.EFFECT_CALLDOWNMULE, mineral1);
+                    commandCenter.Command(Abilities.EFFECT_CALLDOWNMULE, mineral1);
                 }
                 else if (commandCenter.type == UnitType.TERRAN_COMMANDCENTER && NeedBuildUnit(UnitType.TERRAN_ORBITALCOMMAND))
                 {
-                    commandSystem.OptimiseCommand(commandCenter, Abilities.MORPH_ORBITALCOMMAND);
+                    commandCenter.Command(Abilities.MORPH_ORBITALCOMMAND);
                     resourceRemain.mineral -= 150;
                 }
                 else if (commandCenter.type == UnitType.TERRAN_COMMANDCENTER && NeedBuildUnit(UnitType.TERRAN_PLANETARYFORTRESS))
                 {
-                    commandSystem.OptimiseCommand(commandCenter, Abilities.MORPH_PLANETARYFORTRESS);
+                    commandCenter.Command(Abilities.MORPH_PLANETARYFORTRESS);
                     resourceRemain.mineral -= 150;
                     resourceRemain.vespene -= 150;
                 }
@@ -204,7 +203,7 @@ public class BuildSystem1
         {
             if (!enemyArmies1.HitTest(needWorker.position, 6) && TryGetAvailableWorker(out worker))
             {
-                commandSystem.EnqueueAbility(worker, Abilities.SMART, needWorker);
+                worker.Command(Abilities.SMART, needWorker);
             }
         }
 
@@ -239,13 +238,13 @@ public class BuildSystem1
                     (target.assignedHarvesters > 3 || target.buildProgress != 1))
                 {
                     workersAvailable.Remove(worker);
-                    commandSystem.EnqueueAbility(worker, Abilities.STOP);
+                    worker.Command(Abilities.STOP);
                 }
             }
             if (refinery2.assignedHarvesters < 3 && refinery2.vespeneContents > 0 && refinery2.buildProgress == 1 && Vector2.Distance(worker.position, refinery2.position) < 10)
             {
                 workersAvailable.Remove(worker);
-                commandSystem.OptimiseCommand(worker, Abilities.HARVEST_GATHER, refinery2);
+                worker.Command(Abilities.HARVEST_GATHER, refinery2);
             }
         }
 
@@ -259,7 +258,7 @@ public class BuildSystem1
                 workersAvailable.Remove(worker);
                 if (nearByMineral.TryGetRandom(random, out var unit))
                 {
-                    commandSystem.OptimiseCommand(worker, Abilities.HARVEST_GATHER, unit);
+                    worker.Command(Abilities.HARVEST_GATHER, unit);
                 }
             }
         }
@@ -269,7 +268,7 @@ public class BuildSystem1
         {
             if (unit.orders.Count == 0)
             {
-                commandSystem.OptimiseCommand(unit, BotData.onIdle[unit.type], unit.position + random.NextVector2(-5, 5));
+                unit.Command(BotData.onIdle[unit.type], unit.position + random.NextVector2(-5, 5));
             }
         }
 
@@ -345,7 +344,7 @@ public class BuildSystem1
         {
             if (notCompleted.health < notCompleted.healthMax * notCompleted.buildProgress * 0.3f)
             {
-                commandSystem.EnqueueAbility(notCompleted, Abilities.CANCEL);
+                notCompleted.Command(Abilities.CANCEL);
             }
         }
     }
@@ -381,7 +380,7 @@ public class BuildSystem1
             UnitType.PROTOSS_DARKTEMPLAR => Abilities.TRAINWARP_DARKTEMPLAR,
             _ => Abilities.INVALID,
         };
-        commandSystem.OptimiseCommand(unit, ability, position);
+        unit.Command(ability, position);
         return true;
     }
 
@@ -411,7 +410,7 @@ public class BuildSystem1
 
         //predicationSystem.predicatedUnitTypes.Increment(unitType);
         predicationSystem.predicatedEquivalentUnitTypes.Increment(unitType);
-        commandSystem.EnqueueBuild(unit, unitType, position);
+        unit.BuildUnit(unitType, position);
         return true;
     }
 
@@ -426,7 +425,7 @@ public class BuildSystem1
 
         //predicationSystem.predicatedUnitTypes.Increment(unitType);
         predicationSystem.predicatedEquivalentUnitTypes.Increment(unitType);
-        commandSystem.EnqueueBuild(unit, unitType, target);
+        unit.BuildUnit(unitType, target);
         return true;
     }
 
@@ -440,7 +439,7 @@ public class BuildSystem1
         if (!resourceRemain.TryPay(mineralCost, vespeneCost, 0))
             return false;
 
-        commandSystem.EnqueueAbility(unit, (Abilities)upgradeData.AbilityId);
+        unit.Command((Abilities)upgradeData.AbilityId);
         return true;
     }
 
@@ -490,7 +489,7 @@ public class BuildSystem1
             return false;
         //predicationSystem.predicatedUnitTypes.Increment(unitType);
         predicationSystem.predicatedEquivalentUnitTypes.Increment(unitType);
-        commandSystem.EnqueueTrain(unit, unitType);
+        unit.BuildUnit(unitType);
         return true;
     }
 

@@ -13,8 +13,6 @@ namespace MilkWang2
         public string LadderServer { get; set; } = "127.0.0.1";
         [Option('m', "Map")]
         public string Map { get; set; }
-        [Option("MapDir")]
-        public string MapDir { get; set; }
         [Option("Debug")]
         public bool Debug { get; set; }
 

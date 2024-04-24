@@ -4,6 +4,15 @@ using System.Numerics;
 
 namespace MilkWang2.Simulation
 {
+    public class UnitCommand
+    {
+        public Abilities ability;
+        public ulong? targetUnit;
+        public Vector2? targetPosition;
+
+        public UnitType buildUnit;
+        public UpgradeType upgrade;
+    }
     public class Unit
     {
         public int owner;
@@ -117,6 +126,39 @@ namespace MilkWang2.Simulation
             if (buffs == null)
                 return false;
             return buffs.Contains(buffType);
+        }
+
+        public UnitCommand command;
+        public List<Abilities> toggleAutoCast = new List<Abilities>();
+
+        public void Command(Abilities ability)
+        {
+            command = new UnitCommand() { ability = ability };
+        }
+
+        public void Command(Abilities ability, Unit target)
+        {
+            command = new UnitCommand() { ability = ability, targetUnit = target.Tag };
+        }
+
+        public void Command(Abilities ability, ulong target)
+        {
+            command = new UnitCommand() { ability = ability, targetUnit = target };
+        }
+
+        public void Command(Abilities ability, Vector2 position)
+        {
+            command = new UnitCommand() { ability = ability, targetPosition = position };
+        }
+
+        public void Upgrade(UpgradeType upgrade)
+        {
+            command = new UnitCommand() { upgrade = upgrade };
+        }
+
+        public void ToggleAutoCast(Abilities ability)
+        {
+            toggleAutoCast.Add(ability);
         }
 
         public override string ToString()

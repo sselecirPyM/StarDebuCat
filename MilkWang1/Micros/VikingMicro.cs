@@ -9,8 +9,6 @@ namespace MilkWang1.Micros;
 public class VikingMicro : IMicro
 {
     [Import]
-    public CommandSystem1 commandSystem { get; set; }
-    [Import]
     public AnalysisSystem1 analysisSystem { get; set; }
     [Import]
     public BattleSystem1 battleSystem { get; set; }

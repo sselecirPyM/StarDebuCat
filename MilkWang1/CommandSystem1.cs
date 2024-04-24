@@ -1,6 +1,7 @@
 ﻿using StarDebuCat;
 using StarDebuCat.Data;
 using StarDebuCat.Utility;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace MilkWang1;
@@ -9,135 +10,132 @@ public class CommandSystem1
 {
     public GameData GameData;
     public GameConnectionFSM gameConnection;
+    public AnalysisSystem1 analysisSystem;
 
-    public ActionList actionList = new();
+    public List<SC2APIProtocol.ActionChat> actionChats = new List<SC2APIProtocol.ActionChat>();
 
     public void Update()
     {
         var action = new SC2APIProtocol.RequestAction();
-        action.Actions.AddRange(actionList.actions);
-        gameConnection.SendMessage(action);
-        actionList.Clear();
+        foreach (var chat in actionChats)
+        {
+            action.Actions.Add(new SC2APIProtocol.Action()
+            {
+                ActionChat = chat,
+            });
+        }
+        actionChats.Clear();
+        foreach (var unit in analysisSystem.units)
+        {
+            foreach (var toggle in unit.toggleAutoCast)
+            {
+                action.Actions.Add(new SC2APIProtocol.Action()
+                {
+                    ActionRaw = new SC2APIProtocol.ActionRaw()
+                    {
+                        ToggleAutocast = new SC2APIProtocol.ActionRawToggleAutocast()
+                        {
+                            AbilityId = (int)toggle,
+                            UnitTags = new ulong[] { unit.Tag },
+                        }
+                    }
+                });
+            }
+            unit.toggleAutoCast.Clear();
+            if (unit.command == null)
+                continue;
 
+
+            if (unit.command.buildUnit != UnitType.INVALID)
+            {
+                unit.command.ability = (Abilities)GameData.GetUnitTypeData(unit.command.buildUnit).AbilityId;
+            }
+            if (unit.command.upgrade != UpgradeType.NONE)
+            {
+                unit.command.ability = (Abilities)GameData.upgradeDatas[(int)unit.command.upgrade].AbilityId;
+            }
+
+            if (!OptimiseUnitCommand(unit))
+            {
+                var unitCommand = new SC2APIProtocol.ActionRawUnitCommand()
+                {
+                    AbilityId = (int)unit.command.ability,
+                    UnitTags = new ulong[] { unit.Tag },
+                };
+                if (unit.command.targetUnit.HasValue)
+                    unitCommand.TargetUnitTag = unit.command.targetUnit.Value;
+                if (unit.command.targetPosition.HasValue)
+                    unitCommand.TargetWorldSpacePos = unit.command.targetPosition.Value.ToPoint2D();
+                action.Actions.Add(new SC2APIProtocol.Action()
+                {
+                    ActionRaw = new SC2APIProtocol.ActionRaw()
+                    {
+                        UnitCommand = unitCommand
+                    }
+                });
+            }
+            unit.command = null;
+        }
+
+        gameConnection.SendMessage(action);
     }
 
-    float maxOptimiseDistance = 2e-1f;
+    float maxOptimiseDistance = 0.2f;
 
-    public void EnqueueChat(string message, bool broadcast) => actionList.EnqueueChat(message, broadcast);
-
-    public void OptimiseCommand(Unit unit, Abilities abilities, Vector2 target)
+    public void EnqueueChat(string message, bool broadcast) => actionChats.Add(new SC2APIProtocol.ActionChat()
     {
-        if (unit == null)
-            return;
-        if (unit.TryGetOrder(out var order) &&
-            order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetWorldSpacePos)
+        Message = message,
+        channel = broadcast ? SC2APIProtocol.ActionChat.Channel.Broadcast : SC2APIProtocol.ActionChat.Channel.Team
+    });
+
+    bool OptimiseUnitCommand(Unit unit)
+    {
+        foreach (var order in unit.orders)
         {
-            var unitAbilities = (Abilities)order.AbilityId;
-            switch (unitAbilities)
+            var ability = unit.command.ability;
+            var currentAbility = (Abilities)order.AbilityId;
+            switch (currentAbility)
             {
                 case Abilities.ATTACK_ATTACK:
-                    unitAbilities = Abilities.ATTACK;
+                    currentAbility = Abilities.ATTACK;
                     break;
             }
-            if (unitAbilities == abilities)
+            switch (ability)
             {
-                var pos = order.TargetWorldSpacePos.ToVector2();
-                if (Vector2.DistanceSquared(target, pos) < maxOptimiseDistance)
+                case Abilities.ATTACK_ATTACK:
+                    ability = Abilities.ATTACK;
+                    break;
+            }
+            if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetUnitTag &&
+                unit.command.targetUnit.HasValue)
+            {
+                if (currentAbility == ability && order.TargetUnitTag == unit.command.targetUnit.Value)
                 {
-                    return;
+                    return true;
                 }
             }
-
-        }
-        else if (unit.orders.Count == 0)
-        {
-            if (Vector2.DistanceSquared(target, unit.position) < maxOptimiseDistance)
+            else if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetWorldSpacePos &&
+                unit.command.targetPosition.HasValue)
             {
-                return;
+                if (currentAbility == ability)
+                {
+                    var pos = order.TargetWorldSpacePos.ToVector2();
+                    if (Vector2.DistanceSquared(unit.command.targetPosition.Value, pos) < maxOptimiseDistance)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else if (order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None &&
+                !unit.command.targetPosition.HasValue &&
+                !unit.command.targetUnit.HasValue)
+            {
+                if (currentAbility == ability)
+                {
+                    return true;
+                }
             }
         }
-        EnqueueAbility(unit, abilities, target);
-    }
-
-    public void OptimiseCommand(Unit unit, Abilities abilities, Unit targetUnit)
-    {
-        if (unit == null)
-            return;
-        if (unit.TryGetOrder(out var order) &&
-            order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.TargetUnitTag)
-        {
-            var unitAbilities = (Abilities)order.AbilityId;
-            switch (unitAbilities)
-            {
-                case Abilities.ATTACK_ATTACK:
-                    unitAbilities = Abilities.ATTACK;
-                    break;
-            }
-            if (unitAbilities == abilities && order.TargetUnitTag == targetUnit.Tag)
-            {
-                return;
-            }
-        }
-        EnqueueAbility(unit, abilities, targetUnit);
-    }
-
-    public void OptimiseCommand(Unit unit, Abilities abilities)
-    {
-        if (unit == null)
-            return;
-        if (unit.TryGetOrder(out var order) &&
-            order.TargetCase == SC2APIProtocol.UnitOrder.TargetOneofCase.None)
-        {
-            var unitAbilities = (Abilities)order.AbilityId;
-            if (unitAbilities == abilities)
-            {
-                return;
-            }
-        }
-        EnqueueAbility(unit, abilities);
-    }
-
-    public void ToggleAutocastAbility(Unit unit, Abilities abilities)
-    {
-        actionList.UnitsAutocastAction(abilities, unit.Tag);
-    }
-
-    public void EnqueueAbility(Unit unit, Abilities abilities) => actionList.EnqueueAbility(unit.Tag, abilities);
-    public void EnqueueAbility(Unit unit, Abilities abilities, Vector2 target) => actionList.EnqueueAbility(unit.Tag, abilities, target);
-    public void EnqueueAbility(Unit unit, Abilities abilities, Unit target) => actionList.EnqueueAbility(unit.Tag, abilities, target.Tag);
-    public void EnqueueAbility(Unit unit, Abilities abilities, ulong target) => actionList.EnqueueAbility(unit.Tag, abilities, target);
-
-
-    public void EnqueueBuild(Unit unit, UnitType unitType, Vector2 position) => EnqueueBuild(unit.Tag, unitType, position);
-    public void EnqueueBuild(ulong unit, UnitType unitType, Vector2 position)
-    {
-        var cmd = ActionList.Command(GetBuildAbility(unitType));
-        cmd.ActionRaw.UnitCommand.TargetWorldSpacePos = new SC2APIProtocol.Point2D
-        {
-            X = position.X,
-            Y = position.Y
-        };
-        actionList.UnitsAction(cmd, unit);
-        //Console.WriteLine("{0}:{1}", analysisSystem.GameLoop / 22.4, unitType.ToString());
-    }
-    public void EnqueueBuild(Unit unit, UnitType unitType, Unit target) => EnqueueBuild(unit.Tag, unitType, target.Tag);
-    public void EnqueueBuild(ulong unit, UnitType unitType, ulong target)
-    {
-        var cmd = ActionList.Command(GetBuildAbility(unitType));
-        cmd.ActionRaw.UnitCommand.TargetUnitTag = target;
-        actionList.UnitsAction(cmd, unit);
-        //Console.WriteLine("{0}:{1}", analysisSystem.GameLoop / 22.4, unitType.ToString());
-    }
-
-    public void EnqueueTrain(Unit unit, UnitType unitType) => EnqueueTrain(unit.Tag, unitType);
-    public void EnqueueTrain(ulong unit, UnitType unitType)
-    {
-        var cmd = ActionList.Command(GetBuildAbility(unitType));
-        actionList.UnitsAction(cmd, unit);
-        //Console.WriteLine("{0}:{1}", analysisSystem.GameLoop / 22.4, unitType.ToString());
-    }
-    Abilities GetBuildAbility(UnitType unitType)
-    {
-        return (Abilities)GameData.GetUnitTypeData(unitType).AbilityId;
+        return false;
     }
 }

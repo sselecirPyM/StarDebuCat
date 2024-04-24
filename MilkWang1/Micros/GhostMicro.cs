@@ -8,9 +8,7 @@ namespace MilkWang1.Micros;
 public class GhostMicro : IMicro
 {
     [Import]
-    public BattleSystem1 battleSystem { get;set; }
-    [Import]
-    public CommandSystem1 commandSystem { get; set; }
+    public BattleSystem1 battleSystem { get; set; }
 
 
     public void Micro(BattleUnit battleUnit)
@@ -38,7 +36,7 @@ public class GhostMicro : IMicro
 
             if (cast)
             {
-                commandSystem.OptimiseCommand(unit, Abilities.EFFECT_EMP, battleUnit.nearestEnemy.position);
+                unit.Command(Abilities.EFFECT_EMP, battleUnit.nearestEnemy.position);
                 battleUnit.commanding = true;
             }
         }

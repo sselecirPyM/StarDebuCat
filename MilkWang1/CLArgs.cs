@@ -13,8 +13,6 @@ public class CLArgs
     public string LadderServer { get; set; }
     [Option('m', "Map")]
     public string Map { get; set; }
-    [Option("MapDir")]
-    public string MapDir { get; set; }
     [Option("Debug")]
     public bool Debug { get; set; }
 

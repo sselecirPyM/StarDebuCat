@@ -10,8 +10,6 @@ public class SiegeTankMicro : IMicro
 {
     [Import]
     public BattleSystem1 battleSystem { get; set; }
-    [Import]
-    public CommandSystem1 commandSystem { get; set; }
 
     public void Micro(BattleUnit battleUnit)
     {
@@ -44,7 +42,7 @@ public class SiegeTankMicro : IMicro
 
         if (cast)
         {
-            commandSystem.OptimiseCommand(unit, ability);
+            unit.Command(ability);
             battleUnit.commanding = true;
         }
 

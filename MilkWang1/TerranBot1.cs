@@ -19,7 +19,6 @@ public class TerranBot1
     BattleSystem1 battleSystem;
     BuildSystem1 buildSystem;
     InputSystem1 inputSystem;
-    CommandSystem1 commandSystem;
 
     Random random = new Random();
 
@@ -57,7 +56,7 @@ public class TerranBot1
 
     public BotData BotData;
 
-    public string TestStrategy;
+    public string strategy;
 
     Dictionary<string, BotStrategy> botStrateydict = new();
 
@@ -109,8 +108,8 @@ public class TerranBot1
             {
                 if (buildSystem.TryGetAvailableWorker(out var scv))
                 {
-                    commandSystem.EnqueueAbility(scv, Abilities.ATTACK_ATTACK, enemyArmy[0].position);
-                    commandSystem.ToggleAutocastAbility(scv, Abilities.EFFECT_REPAIR_SCV);
+                    scv.Command(Abilities.ATTACK_ATTACK, enemyArmy[0].position);
+                    scv.ToggleAutoCast(Abilities.EFFECT_REPAIR_SCV);
                 }
             }
         }
@@ -122,8 +121,8 @@ public class TerranBot1
             {
                 if (buildSystem.TryGetAvailableWorker(out var scv))
                 {
-                    commandSystem.EnqueueAbility(scv, Abilities.ATTACK, enemyUnits[0]);
-                    commandSystem.ToggleAutocastAbility(scv, Abilities.EFFECT_REPAIR_SCV);
+                    scv.Command(Abilities.ATTACK, enemyUnits[0]);
+                    scv.ToggleAutoCast(Abilities.EFFECT_REPAIR_SCV);
                 }
             }
         }
@@ -316,10 +315,6 @@ public class TerranBot1
         enemyProtectPositions.Sort((a, b) => Vector2.Distance(a, enemyStartPosition).CompareTo(Vector2.Distance(b, enemyStartPosition)));
         battleSystem.mainTarget = enemyProtectPositions[1];
 
-        //if (TestStrategy != null)
-        //    botStrategy = BotData.botStrategies.First(u => u.Name == TestStrategy);
-        //else
-        //    botStrategy = BotData.botStrategies[0];
 
         statistics = Statistics.Load();
 
@@ -337,8 +332,11 @@ public class TerranBot1
                     break;
             }
         }
-        string strategyName = strategyList.strategies[random.Next(0, strategyList.strategies.Count)];
-        currentStrategy = botStrateydict[strategyName];
+        if (strategy == null)
+        {
+            strategy = strategyList.strategies[random.Next(0, strategyList.strategies.Count)];
+            currentStrategy = botStrateydict[strategy];
+        }
         Console.WriteLine(currentStrategy.Name);
     }
 

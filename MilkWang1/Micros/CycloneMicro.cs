@@ -11,8 +11,6 @@ namespace MilkWang1.Micros;
 public class CycloneMicro : IMicro
 {
     [Import]
-    public CommandSystem1 commandSystem { get; set; }
-    [Import]
     public AnalysisSystem1 analysisSystem { get; set; }
     [Import]
     public BattleSystem1 battleSystem { get; set; }
@@ -79,7 +77,7 @@ public class CycloneMicro : IMicro
 
     void Micro0(BattleUnit battleUnit)
     {
-        commandSystem.ToggleAutocastAbility(battleUnit.unit, Abilities.EFFECT_LOCKON);
+        battleUnit.unit.ToggleAutoCast(Abilities.EFFECT_LOCKON);
         battleUnit.stateCode = 1;
     }
     void Micro1(BattleUnit battleUnit)
@@ -121,7 +119,7 @@ public class CycloneMicro : IMicro
         var enemy = battleUnit.nearestEnemy;
         if (enemy != null)
         {
-            commandSystem.OptimiseCommand(battleUnit.unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, battleUnit.enemyMaxRange + 2.0f));
+            battleUnit.unit.Command(Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, battleUnit.enemyMaxRange + 2.0f));
         }
         if (!lockonPair.ContainsKey(battleUnit))
         {
@@ -134,7 +132,7 @@ public class CycloneMicro : IMicro
     void Lock(BattleUnit source, Unit target)
     {
         if (target != null)
-            commandSystem.OptimiseCommand(source.unit, Abilities.EFFECT_LOCKON, target);
+            source.unit.Command(Abilities.EFFECT_LOCKON, target);
         source.commanding = true;
         lock1[source] = target.Tag;
     }

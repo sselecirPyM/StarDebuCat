@@ -9,8 +9,6 @@ namespace MilkWang1.Micros;
 public class DefaultMicro : IMicro
 {
     [Import]
-    public CommandSystem1 commandSystem {  get; set; }
-    [Import]
     public BattleSystem1 battleSystem { get; set; }
     [Import]
     public GameData GameData { get; set; }
@@ -49,12 +47,12 @@ public class DefaultMicro : IMicro
 
             if (cast && targetType == SC2APIProtocol.AbilityData.Target.None)
             {
-                commandSystem.OptimiseCommand(unit, autoCast.ability);
+                unit.Command(autoCast.ability);
                 battleUnit.commanding = true;
             }
             if (cast && targetType == SC2APIProtocol.AbilityData.Target.Point && battleUnit.nearestEnemy != null)
             {
-                commandSystem.OptimiseCommand(unit, autoCast.ability, battleUnit.nearestEnemy.position);
+                unit.Command(autoCast.ability, battleUnit.nearestEnemy.position);
                 battleUnit.commanding = true;
             }
         }
@@ -96,37 +94,37 @@ public class DefaultMicro : IMicro
                 {
                     case MicroStrategy.Forward:
                         if (dummyEnemyMaxRange + 0.5f >= fireRange)
-                            commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
+                            unit.Command(Abilities.ATTACK, enemy.position);
                         else
-                            commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, dummyEnemyMaxRange + 1.5f)));
+                            unit.Command(Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, dummyEnemyMaxRange + 1.5f)));
                         break;
                     case MicroStrategy.Push:
-                        commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, 0.2f, Math.Min(fireRange, 2.0f)));
+                        unit.Command(Abilities.MOVE, unitPosition.Closer(enemy.position, 0.2f, Math.Min(fireRange, 2.0f)));
                         break;
                     case MicroStrategy.None:
-                        commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, dummyEnemyMaxRange + 1.5f)));
+                        unit.Command(Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, dummyEnemyMaxRange + 1.5f)));
                         break;
                 }
                 battleUnit.commanding = true;
             }
             else if (unit.weaponCooldown <= 1 && battleUnit.minLifeEnemy != null)
             {
-                commandSystem.OptimiseCommand(unit, Abilities.ATTACK, battleUnit.minLifeEnemy);
+                unit.Command(Abilities.ATTACK, battleUnit.minLifeEnemy);
                 battleUnit.commanding = true;
             }
             //else if (unit.positionZ > enemy.positionZ + 0.5f && Vector2.Distance(unitPosition, enemy.position) < 9)
             //{
-            //    commandSystem.OptimiseCommand(unit, Abilities.STOP);
+            //    unit.Command(Abilities.STOP);
             //    battleUnit.commanding = true;
             //}
             else if (battleUnit.microStrategy == MicroStrategy.Forward || battleUnit.microStrategy == MicroStrategy.Push)
             {
-                commandSystem.OptimiseCommand(unit, Abilities.ATTACK, enemy.position);
+                unit.Command(Abilities.ATTACK, enemy.position);
                 battleUnit.commanding = true;
             }
             else
             {
-                commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Max(fireRange, dummyEnemyMaxRange + 1.0f)));
+                unit.Command(Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Max(fireRange, dummyEnemyMaxRange + 1.0f)));
                 battleUnit.commanding = true;
             }
         }
@@ -146,29 +144,28 @@ public class DefaultMicro : IMicro
 
             if (longFirePreparing)
             {
-                commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, dummyEnemyMaxRange + 1.0f)));
+                unit.Command(Abilities.MOVE, unitPosition.Closer(enemy.position, -0.3f, Math.Min(fireRange, dummyEnemyMaxRange + 1.0f)));
 
                 battleUnit.commanding = true;
             }
             else if (unit.weaponCooldown <= 1 && battleUnit.minLifeEnemy != null)
             {
-                commandSystem.OptimiseCommand(unit, Abilities.ATTACK, battleUnit.minLifeEnemy);
+                unit.Command(Abilities.ATTACK, battleUnit.minLifeEnemy);
                 battleUnit.commanding = true;
             }
             else if (unit.positionZ <= enemy.positionZ + 0.5f)
             {
-                commandSystem.OptimiseCommand(unit, Abilities.ATTACK_ATTACK, enemy.position);
+                unit.Command(Abilities.ATTACK_ATTACK, enemy.position);
                 battleUnit.commanding = true;
             }
             else if (unit.positionZ > enemy.positionZ + 0.5f && Vector2.Distance(unitPosition, enemy.position) < 12)
             {
-                commandSystem.OptimiseCommand(unit, Abilities.STOP);
+                unit.Command(Abilities.STOP);
                 battleUnit.commanding = true;
             }
             else
             {
-                commandSystem.OptimiseCommand(unit, Abilities.MOVE, unitPosition.Closer(enemy.position, -0.1f, Math.Max(fireRange, dummyEnemyMaxRange + 1.0f)));
-                //commandSystem.OptimiseCommand(unit, Abilities.STOP);
+                unit.Command(Abilities.MOVE, unitPosition.Closer(enemy.position, -0.1f, Math.Max(fireRange, dummyEnemyMaxRange + 1.0f)));
                 battleUnit.commanding = true;
             }
         }

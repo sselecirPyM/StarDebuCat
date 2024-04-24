@@ -15,7 +15,6 @@ namespace MilkWang1;
 public class BattleSystem1
 {
     AnalysisSystem1 analysisSystem;
-    CommandSystem1 commandSystem;
 
     [Units(Alliance.Self, "Army")]
     public List<Unit> armies;
@@ -54,7 +53,6 @@ public class BattleSystem1
         containerConfiguration.WithAssembly(Assembly.GetExecutingAssembly());
         containerConfiguration.WithExport(this);
         containerConfiguration.WithExport(analysisSystem);
-        containerConfiguration.WithExport(commandSystem);
         containerConfiguration.WithExport(GameData);
         var container = containerConfiguration.CreateContainer();
         var exports = container.GetExports<Lazy<IMicro, IDictionary<string, object>>>();
@@ -105,11 +103,11 @@ public class BattleSystem1
             switch (pair.Value.battleType)
             {
                 case UnitBattleType.AttackMain:
-                    commandSystem.OptimiseCommand(pair.Key, Abilities.ATTACK, mainTarget);
+                    pair.Key.Command(Abilities.ATTACK, mainTarget);
                     break;
                 case UnitBattleType.ProtectArea:
                     if (Vector2.Distance(pair.Value.protectPosition, pair.Value.unit.position) > 3)
-                        commandSystem.OptimiseCommand(pair.Key, Abilities.ATTACK, pair.Value.protectPosition);
+                        pair.Key.Command(Abilities.ATTACK, pair.Value.protectPosition);
                     break;
             }
         }

@@ -34,7 +34,7 @@ namespace MilkWang2
             int repeatCount = clArgs.Repeat;
             if (clArgs.Debug)
             {
-                SC2GameHelp.LaunchSC2(clArgs.GamePort, out var maps);
+                SC2GameHelp.LaunchSC2(clArgs.GamePort);
             }
             int startPort = clArgs.StartPort;
 
