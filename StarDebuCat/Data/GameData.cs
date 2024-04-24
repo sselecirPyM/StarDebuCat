@@ -16,7 +16,7 @@ public class AutoCast
 
 public partial class GameData
 {
-    public HashSet<UnitType> selfBuild;
+    public HashSet<UnitType> autoBuild;
     public HashSet<UnitType> refineries;
     public HashSet<UnitType> vespeneGeysers;
     public HashSet<UnitType> mineralFields;

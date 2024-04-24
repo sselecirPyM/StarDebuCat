@@ -1,5 +1,5 @@
 ﻿{
-  "selfBuild": [
+  "autoBuild": [
     "TERRAN_BARRACKSTECHLAB",
     "TERRAN_BARRACKSREACTOR",
     "TERRAN_FACTORYTECHLAB",

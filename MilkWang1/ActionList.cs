@@ -1,11 +1,11 @@
 ﻿using SC2APIProtocol;
 using StarDebuCat.Data;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
-using Action = SC2APIProtocol.Action;
 using Unit = StarDebuCat.Data.Unit;
 
-namespace StarDebuCat.Commanding;
+namespace MilkWang1;
 
 public class ActionList
 {
@@ -22,30 +22,38 @@ public class ActionList
         actions.Add(new Action { ActionChat = actionChat });
     }
 
-    public void EnqueueAbility(IReadOnlyList<Unit> units, Abilities abilities)
+    public void EnqueueAbility(IReadOnlyList<ulong> units, Abilities abilities)
     {
         UnitsAction(Command(abilities), units);
     }
-    public void EnqueueAbility(IReadOnlyList<Unit> units, Abilities abilities, ulong target)
+    public void EnqueueAbility(IReadOnlyList<ulong> units, Abilities abilities, ulong target)
     {
         UnitsAction(Command(abilities, target), units);
     }
-    public void EnqueueAbility(IReadOnlyList<Unit> units, Abilities abilities, Vector2 target)
+    public void EnqueueAbility(IReadOnlyList<ulong> units, Abilities abilities, Vector2 target)
     {
         UnitsAction(Command(abilities, target), units);
     }
 
-    public void EnqueueAbility(Unit unit, Abilities abilities)
+    public void EnqueueAbility(ulong unit, Abilities abilities)
     {
         UnitsAction(Command(abilities), unit);
     }
-    public void EnqueueAbility(Unit unit, Abilities abilities, ulong target)
+    public void EnqueueAbility(ulong unit, Abilities abilities, ulong target)
     {
         UnitsAction(Command(abilities, target), unit);
     }
-    public void EnqueueAbility(Unit unit, Abilities abilities, Vector2 target)
+    public void EnqueueAbility(ulong unit, Abilities abilities, Vector2 target)
     {
         UnitsAction(Command(abilities, target), unit);
+    }
+
+    public void UnitsAction(Action action, IReadOnlyList<ulong> units)
+    {
+
+        action.ActionRaw.UnitCommand.UnitTags = units.ToArray();
+        if (action.ActionRaw.UnitCommand.UnitTags.Length > 0)
+            actions.Add(action);
     }
 
     public void UnitsAction(Action action, IReadOnlyList<Unit> units)

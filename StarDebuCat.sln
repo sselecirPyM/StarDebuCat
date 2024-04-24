@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotVsBot", "BotVsBot\BotVsB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SC2APIProtocol", "SC2APIProtocol\SC2APIProtocol.csproj", "{7250D802-A73B-48FC-AEEE-6BDD5EA656DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MilkWang2", "MilkWang2\MilkWang2.csproj", "{52162296-E881-4D81-B758-5C6EEE5C338C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{7250D802-A73B-48FC-AEEE-6BDD5EA656DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7250D802-A73B-48FC-AEEE-6BDD5EA656DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7250D802-A73B-48FC-AEEE-6BDD5EA656DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52162296-E881-4D81-B758-5C6EEE5C338C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52162296-E881-4D81-B758-5C6EEE5C338C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52162296-E881-4D81-B758-5C6EEE5C338C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52162296-E881-4D81-B758-5C6EEE5C338C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

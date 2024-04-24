@@ -1,7 +1,7 @@
 ﻿using CommandLine;
 using SC2APIProtocol;
 
-namespace MilkWangBase.Utility;
+namespace MilkWang1;
 
 public class CLArgs
 {

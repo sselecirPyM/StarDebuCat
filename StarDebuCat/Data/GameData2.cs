@@ -96,10 +96,6 @@ public partial class GameData
                 upgradeRequirements.Add(upgrade);
         }
     }
-    public SC2APIProtocol.UnitTypeData GetUnitTypeData(Unit unit)
-    {
-        return unitTypeDatas[(int)unit.type];
-    }
 
     public SC2APIProtocol.UnitTypeData GetUnitTypeData(UnitType unitType)
     {

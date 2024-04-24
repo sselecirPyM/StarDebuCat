@@ -1,8 +1,6 @@
 ﻿using StarDebuCat;
-using StarDebuCat.Commanding;
 using StarDebuCat.Data;
 using StarDebuCat.Utility;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace MilkWang1;
@@ -10,13 +8,15 @@ namespace MilkWang1;
 public class CommandSystem1
 {
     public GameData GameData;
-    public GameConnection gameConnection;
+    public GameConnectionFSM gameConnection;
 
     public ActionList actionList = new();
 
     public void Update()
     {
-        gameConnection.RequestAction(actionList.actions);
+        var action = new SC2APIProtocol.RequestAction();
+        action.Actions.AddRange(actionList.actions);
+        gameConnection.SendMessage(action);
         actionList.Clear();
 
     }
@@ -99,16 +99,14 @@ public class CommandSystem1
 
     public void ToggleAutocastAbility(Unit unit, Abilities abilities)
     {
-        actionList.UnitsAutocastAction(abilities, unit);
+        actionList.UnitsAutocastAction(abilities, unit.Tag);
     }
 
-    public void EnqueueAbility(Unit unit, Abilities abilities) => actionList.EnqueueAbility(unit, abilities);
-    public void EnqueueAbility(Unit unit, Abilities abilities, Vector2 target) => actionList.EnqueueAbility(unit, abilities, target);
-    public void EnqueueAbility(Unit unit, Abilities abilities, Unit target) => actionList.EnqueueAbility(unit, abilities, target.Tag);
-    public void EnqueueAbility(Unit unit, Abilities abilities, ulong target) => actionList.EnqueueAbility(unit, abilities, target);
+    public void EnqueueAbility(Unit unit, Abilities abilities) => actionList.EnqueueAbility(unit.Tag, abilities);
+    public void EnqueueAbility(Unit unit, Abilities abilities, Vector2 target) => actionList.EnqueueAbility(unit.Tag, abilities, target);
+    public void EnqueueAbility(Unit unit, Abilities abilities, Unit target) => actionList.EnqueueAbility(unit.Tag, abilities, target.Tag);
+    public void EnqueueAbility(Unit unit, Abilities abilities, ulong target) => actionList.EnqueueAbility(unit.Tag, abilities, target);
 
-    public void EnqueueAbility(IReadOnlyList<Unit> unit, Abilities abilities) => actionList.EnqueueAbility(unit, abilities);
-    public void EnqueueAbility(IReadOnlyList<Unit> unit, Abilities abilities, Vector2 target) => actionList.EnqueueAbility(unit, abilities, target);
 
     public void EnqueueBuild(Unit unit, UnitType unitType, Vector2 position) => EnqueueBuild(unit.Tag, unitType, position);
     public void EnqueueBuild(ulong unit, UnitType unitType, Vector2 position)

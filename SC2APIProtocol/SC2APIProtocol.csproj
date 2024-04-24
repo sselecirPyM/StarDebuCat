@@ -25,7 +25,7 @@
 	  <AdditionalFiles Include="s2clientprotocol\error.proto" ImportPaths="../" OneOf="enum" />
 	  <AdditionalFiles Include="s2clientprotocol\query.proto" ImportPaths="../" OneOf="enum" />
 	  <AdditionalFiles Include="s2clientprotocol\raw.proto" ImportPaths="../" OneOf="enum" />
-	  <AdditionalFiles Include="s2clientprotocol\sc2api.proto" ImportPaths="../" />
+	  <AdditionalFiles Include="s2clientprotocol\sc2api.proto" ImportPaths="../"  OneOf="enum" />
 	  <AdditionalFiles Include="s2clientprotocol\score.proto" ImportPaths="../" OneOf="enum" />
 	  <AdditionalFiles Include="s2clientprotocol\spatial.proto" ImportPaths="../" OneOf="enum" />
 	  <AdditionalFiles Include="s2clientprotocol\ui.proto" ImportPaths="../" OneOf="enum" />

@@ -94,6 +94,8 @@ public static class SC2GameHelp
         new SC2Version("5.0.8", 86383, "22EAC562CD0C6A31FB2C2C21E3AA3680"),
         new SC2Version("5.0.9", 87702, "F799E093428D419FD634CCE9B925218C"),
         new SC2Version("5.0.11", 90136, "207F9DD45D02C9E6D19F868E0239E72D"),
+        new SC2Version("5.0.13", 92028, "2B7746A6706F919775EF1BADFC95EA1C"),
+        new SC2Version("5.0.13.92138", 92138, "D6B5BB5033A820B05C39CC615AE6F77B"),
     };
 
     public static void GetSC2Path(out string starcraftExe, out string starcraftDir)

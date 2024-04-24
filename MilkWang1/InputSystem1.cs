@@ -14,7 +14,7 @@ public class InputSystem1
 
     public string enemyId;
 
-    public GameConnection gameConnection;
+    public GameConnectionFSM gameConnection;
 
     public int playerId;
 
@@ -34,18 +34,41 @@ public class InputSystem1
     public void Init2()
     {
         StartGame();
-        gameData = gameConnection.RequestGameData();
-        gameInfo = gameConnection.RequestGameInfo();
+        gameConnection.OnResponseGameInfo += OnResponseGameInfo;
+        gameConnection.OnResponseData += OnResponseData;
+        gameConnection.SendMessage(new Request()
+        {
+            Data = new RequestData()
+            {
+                AbilityId = true,
+                BuffId = true,
+                EffectId = true,
+                UnitTypeId = true,
+                UpgradeId = true,
+            }
+        });
+        gameConnection.SendMessage(new Request()
+        {
+            GameInfo = new RequestGameInfo()
+        });
     }
 
-    //public void Update2()
-    //{
-    //    observation = gameConnection.RequestObservation();
-    //}
+    private void OnResponseData(ResponseData obj)
+    {
+        gameConnection.OnResponseData -= OnResponseData;
+        this.gameData = obj;
+    }
+
+    private void OnResponseGameInfo(ResponseGameInfo obj)
+    {
+        gameConnection.OnResponseGameInfo -= OnResponseGameInfo;
+        this.gameInfo = obj;
+    }
 
     public void StartGame()
     {
         gameConnection.Connect("127.0.0.1", gamePort);
+        gameConnection.OnResponseJoinGame += OnResponseJoinGame;
         if (isLadderGame)
         {
             JoinGameLadder(Race, port);
@@ -64,17 +87,30 @@ public class InputSystem1
                 AiBuild = ComputerAIBuild
             };
 
-            //var player1 = new PlayerSetup
-            //{
-            //    Type = PlayerType.Participant
-            //};
-            //var player2 = new PlayerSetup
-            //{
-            //    Type = PlayerType.Participant
-            //};
-            gameConnection.NewGame(player1, player2, map);
+            gameConnection.SendMessage(new RequestCreateGame()
+            {
+                LocalMap = new LocalMap()
+                {
+                    MapPath = map
+                },
+                PlayerSetups =
+                {
+                    player1,
+                    player2
+                }
+            });
             JoinGameLocal(Race);
         }
+    }
+
+    private void OnResponseJoinGame(ResponseJoinGame responseJoinGame)
+    {
+        gameConnection.OnResponseJoinGame -= OnResponseJoinGame;
+        if (responseJoinGame.ShouldSerializeerror())
+        {
+            throw new Exception(string.Format("{0} {1}", responseJoinGame.error.ToString(), responseJoinGame.ErrorDetails));
+        }
+        playerId = (int)responseJoinGame.PlayerId;
     }
 
     void JoinGameLadder(Race race, int startPort)
@@ -104,13 +140,7 @@ public class InputSystem1
             }
         };
 
-        var responseJoinGame = gameConnection.Request(joinGame);
-        if (responseJoinGame.ShouldSerializeerror())
-        {
-            throw new Exception(string.Format("{0} {1}", responseJoinGame.error.ToString(), responseJoinGame.ErrorDetails));
-        }
-
-        playerId = (int)responseJoinGame.PlayerId;
+        gameConnection.SendMessage(new Request() { JoinGame = joinGame });
     }
 
     void JoinGameLocal(Race race)
@@ -125,11 +155,6 @@ public class InputSystem1
             }
         };
 
-        var responseJoinGame = gameConnection.Request(joinGame);
-        if (responseJoinGame.ShouldSerializeerror())
-        {
-            throw new Exception(string.Format("Response error \ndetail:{0}", responseJoinGame.ErrorDetails));
-        }
-        playerId = (int)responseJoinGame.PlayerId;
+        gameConnection.SendMessage(new Request() { JoinGame = joinGame });
     }
 }

@@ -1,5 +1,4 @@
 ﻿using MilkWangBase.Core;
-using MilkWangBase.Utility;
 using StarDebuCat;
 using StarDebuCat.Data;
 using System;
@@ -18,7 +17,7 @@ public class BotController : IDisposable
         Exit,
         Running,
     }
-    public GameConnection gameConnection;
+    public GameConnectionFSM gameConnection;
 
     public CLArgs CLArgs;
     public BotSubController subController;
@@ -34,7 +33,7 @@ public class BotController : IDisposable
 
         var botData = GetData<BotData>("BotData/terran.json");
         var gameData = GetData<GameData>("GameData/GameData.json");
-        gameConnection = new GameConnection();
+        gameConnection = new GameConnectionFSM();
         subController = new BotSubController();
         var inputSystem = subController.inputSystem = new InputSystem1();
 
@@ -50,7 +49,7 @@ public class BotController : IDisposable
                 StarDebuCat.Utility.SC2GameHelp.LaunchSC2(CLArgs.StartPort, out maps);
 
 
-            inputSystem.map = maps + "/" + CLArgs.Map;
+            inputSystem.map = CLArgs.Map;
             inputSystem.isLadderGame = false;
             inputSystem.ComputerDifficulty = CLArgs.ComputerDifficulty;
             inputSystem.ComputerRace = CLArgs.ComputerRace;
@@ -62,7 +61,7 @@ public class BotController : IDisposable
         fusion.AddData(botData);
         fusion.AddData(gameData);
         fusion.AddData(gameConnection);
-        ;
+
         subController.debugSystem.enable = CLArgs.Debug;
 
         fusion.InitializeSystems();
@@ -77,16 +76,11 @@ public class BotController : IDisposable
             case AppState.Initialize:
                 inputSystem.Init2();
                 appState = AppState.Running;
+                gameConnection.OnResponseObservation += OnObservation;
                 break;
-            //case BotState.WaitForInput:
-            //    gameConnection.RequestStep(1);
-            //    botState = BotState.Do;
-            //    break;
             case AppState.Running:
-                //gameConnection.RequestStep(1);
-                //inputSystem.observation = gameConnection.RequestObservation();
-                inputSystem.observation = gameConnection.StepObservation();
-                //inputSystem.Update2();
+                Next();
+                gameConnection.FSM();
                 var status = gameConnection.status;
                 if (status == SC2APIProtocol.Status.Ended || status == SC2APIProtocol.Status.Quit)
                 {
@@ -107,11 +101,31 @@ public class BotController : IDisposable
                         Console.WriteLine("Result: {0}", result.Result);
                     }
                 }
-                gameConnection.LeaveGame();
                 subController.terranBot1.OnExit();
                 exitProgram = true;
+                gameConnection.OnResponseObservation -= OnObservation;
                 break;
         }
+    }
+
+    void OnObservation(SC2APIProtocol.ResponseObservation observation)
+    {
+        subController.inputSystem.observation = observation;
+    }
+
+    void Next()
+    {
+        gameConnection.SendMessage(new SC2APIProtocol.Request()
+        {
+            Step = new SC2APIProtocol.RequestStep()
+            {
+                Count = 1
+            }
+        });
+        gameConnection.SendMessage(new SC2APIProtocol.Request()
+        {
+            Observation = new SC2APIProtocol.RequestObservation()
+        });
     }
 
     public void Dispose()

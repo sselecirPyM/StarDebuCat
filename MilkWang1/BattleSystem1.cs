@@ -150,7 +150,7 @@ public class BattleSystem1
             float minLife = 150.0f;
             foreach (var enemy in enemyNearbyMix)
             {
-                var enemyTypeData = GameData.GetUnitTypeData(enemy);
+                var enemyTypeData = GameData.GetUnitTypeData(enemy.type);
                 float enemyRange = GameData.GetFireRange(enemy.type);
                 float dummyEnemyRange = Math.Max(enemyRange, 3) + 2.5f;
                 float fireRange1 = Math.Max(fireRange, 4);
@@ -186,7 +186,7 @@ public class BattleSystem1
 
             foreach (var friendly in friendNearbys)
             {
-                var friendlyTypeData = GameData.GetUnitTypeData(friendly);
+                var friendlyTypeData = GameData.GetUnitTypeData(friendly.type);
                 friendlyNearByFood += friendlyTypeData.FoodRequired;
             }
             var battleUnit = battleUnits[unit];

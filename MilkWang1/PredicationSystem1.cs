@@ -65,7 +65,6 @@ public class PredicationSystem1
         {
             UnitType unitType = GetAlias(unit.type);
             var unitTypeData = GameData.GetUnitTypeData(unit.type);
-            float timeRemain = unitTypeData.BuildTime * (1 - unit.buildProgress);
             if (unit.buildProgress == 1.0f)
             {
                 buildCompletedUnitTypes.Increment(unitType);
@@ -87,7 +86,7 @@ public class PredicationSystem1
         {
             var typeData = GameData.GetUnitTypeData(unit.type);
             float timeRemain = typeData.BuildTime * (1 - unit.buildProgress);
-            if (GameData.selfBuild.Contains(unit.type))
+            if (GameData.autoBuild.Contains(unit.type))
             {
                 vBuildNotCompleted.Add((unit.type, timeRemain));
             }

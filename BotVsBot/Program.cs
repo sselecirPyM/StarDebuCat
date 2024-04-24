@@ -11,7 +11,7 @@ namespace BotVsBot
         {
             CLArgs clArgs = new CLArgs();
             clArgs.port = 5678;
-            clArgs.MapPath = "D:/StarCraft II/Maps/BerlingradAIE.SC2Map";
+            clArgs.MapPath = "Gresvan512V2AIE.SC2Map";
             clArgs.BotPath = "MilkWang1";
 
             Run(clArgs);
@@ -27,10 +27,10 @@ namespace BotVsBot
         {
             int port = clArgs.port;
             SC2GameHelp.GetSC2Path(out var exe, out var dir);
-            Launch(dir, exe, port + 2);
-            Launch(dir, exe, port + 4);
+            LaunchGame(dir, exe, port + 2);
+            LaunchGame(dir, exe, port + 4);
 
-            GameConnection gameConnection = new GameConnection();
+            GameConnectionFSM gameConnection = new GameConnectionFSM();
             gameConnection.Connect("127.0.0.1", port + 2);
 
             CreateGame(gameConnection, clArgs.MapPath, true);
@@ -39,7 +39,7 @@ namespace BotVsBot
 
             //LaunchBot(path, clArgs.BotPath, port + 2, port);
             LaunchBot(path, clArgs.BotPath, port + 4, port);
-            gameConnection.Request(new SC2APIProtocol.Request()
+            gameConnection.SendMessage(new SC2APIProtocol.Request()
             {
                 JoinGame = new SC2APIProtocol.RequestJoinGame()
                 {
@@ -61,6 +61,7 @@ namespace BotVsBot
                 }
             });
 
+            gameConnection.FSM();
             gameConnection.Dispose();
         }
 
@@ -68,13 +69,14 @@ namespace BotVsBot
         {
             int port = clArgs.port;
             SC2GameHelp.GetSC2Path(out var exe, out var dir);
-            Launch(dir, exe, port + 2);
-            Launch(dir, exe, port + 4);
+            LaunchGame(dir, exe, port + 2);
+            LaunchGame(dir, exe, port + 4);
 
-            GameConnection gameConnection = new GameConnection();
+            GameConnectionFSM gameConnection = new GameConnectionFSM();
             gameConnection.Connect("127.0.0.1", port + 2);
 
             CreateGame(gameConnection, clArgs.MapPath, false);
+            gameConnection.FSM();
             gameConnection.Dispose();
 
             string path = Path.GetFullPath(clArgs.BotPath);
@@ -83,9 +85,9 @@ namespace BotVsBot
             LaunchBot(path, clArgs.BotPath, port + 4, port);
         }
 
-        static void CreateGame(GameConnection gameConnection, string mapPath, bool realtime)
+        static void CreateGame(GameConnectionFSM gameConnection, string mapPath, bool realtime)
         {
-            gameConnection.Request(new SC2APIProtocol.Request
+            gameConnection.SendMessage(new SC2APIProtocol.Request
             {
                 CreateGame = new SC2APIProtocol.RequestCreateGame()
                 {
@@ -118,14 +120,15 @@ namespace BotVsBot
                 ArgumentList =
                 {
                     "--OpponentId","MilkWang1",
-                    "-g",port.ToString(),
-                    "-o",startPort.ToString(),
+                    "--GamePort",port.ToString(),
+                    "--StartPort",startPort.ToString(),
+                    "--LadderServer","127.0.0.1"
                 },
                 UseShellExecute = true
             };
             Process.Start(processStartInfo);
         }
-        static void Launch(string starcraftDir, string fileName, int port)
+        static void LaunchGame(string starcraftDir, string fileName, int port)
         {
             ProcessStartInfo processStartInfo = new ProcessStartInfo()
             {

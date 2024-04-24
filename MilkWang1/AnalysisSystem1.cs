@@ -291,7 +291,7 @@ public class AnalysisSystem1
                 deadUnits.Add(unit);
         foreach (var unit in deadUnits)
         {
-            var unitTypeData = GameData.GetUnitTypeData(unit);
+            var unitTypeData = GameData.GetUnitTypeData(unit.type);
             if (unit.owner == playerId)
             {
                 currentFrameResource.MineralLost += (int)unitTypeData.MineralCost;

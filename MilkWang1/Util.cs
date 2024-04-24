@@ -20,4 +20,9 @@ static public class Util
     {
         File.WriteAllText(path, JsonConvert.SerializeObject(obj, jsonSerializerSettings));
     }
+
+    public static void Save2<T>(T obj, string path)
+    {
+        File.WriteAllText(path, JsonConvert.SerializeObject(obj));
+    }
 }

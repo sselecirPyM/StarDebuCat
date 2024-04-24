@@ -14,7 +14,7 @@ public struct TagPosition
 }
 public class DebugSystem
 {
-    public GameConnection gameConnection;
+    public GameConnectionFSM gameConnection;
 
     public bool enable;
     AnalysisSystem1 analysisSystem;
@@ -182,7 +182,7 @@ public class DebugSystem
             });
         }
 
-        gameConnection.Request(debugRequest);
+        gameConnection.SendMessage(debugRequest);
     }
 
     void MessageCacheInit()
